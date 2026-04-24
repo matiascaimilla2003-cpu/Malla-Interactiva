@@ -1,12 +1,27 @@
+import { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useProgreso } from './hooks/useProgreso'
+import { usePerfil } from './hooks/usePerfil'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
+import Onboarding from './pages/Onboarding'
 import Malla from './components/Malla'
 
 export default function App() {
   const { user, loading: authLoading, signOut } = useAuth()
   const { progreso, loading: progresoLoading, setEstado, clearEstado } = useProgreso(user?.id)
+  const { perfil, loading: perfilLoading, savePerfil } = usePerfil(user?.id)
 
+  // Unauthenticated navigation: 'landing' | 'auth'
+  const [page, setPage] = useState('landing')
+  const [authMode, setAuthMode] = useState('login')
+
+  function showAuth(mode) {
+    setAuthMode(mode)
+    setPage('auth')
+  }
+
+  // ── Loading auth session ──────────────────────────────────────────────────
   if (authLoading) {
     return (
       <div className="loading-screen">
@@ -16,10 +31,35 @@ export default function App() {
     )
   }
 
+  // ── Unauthenticated flow: Landing → Login ─────────────────────────────────
   if (!user) {
-    return <Login />
+    if (page === 'auth') {
+      return <Login defaultMode={authMode} onBack={() => setPage('landing')} />
+    }
+    return <Landing onShowAuth={showAuth} />
   }
 
+  // ── Loading user profile ──────────────────────────────────────────────────
+  if (perfilLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+        <p>Cargando tu perfil...</p>
+      </div>
+    )
+  }
+
+  // ── Onboarding (first time) ───────────────────────────────────────────────
+  if (!perfil) {
+    return (
+      <Onboarding
+        user={user}
+        onDone={savePerfil}
+      />
+    )
+  }
+
+  // ── Main app ──────────────────────────────────────────────────────────────
   return (
     <div className="app">
       <nav className="navbar">

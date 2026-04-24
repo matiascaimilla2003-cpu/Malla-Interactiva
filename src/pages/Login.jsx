@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 
-export default function Login() {
+export default function Login({ defaultMode = 'login', onBack }) {
   const { signIn, signUp } = useAuth()
+  const [modo, setModo] = useState(defaultMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [modo, setModo] = useState('login') // 'login' | 'registro'
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [cargando, setCargando] = useState(false)
@@ -28,23 +28,30 @@ export default function Login() {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>Malla Interactiva</h1>
-          <p>Ing. Comercial USM</p>
-        </div>
+    <div className="auth-page">
+      <div className="auth-panel">
+        {onBack
+          ? <button type="button" className="auth-back" onClick={onBack}>← Volver al inicio</button>
+          : <div style={{ marginBottom: 32 }} />
+        }
 
-        <div className="login-tabs">
+        <h1 className="auth-title">
+          {modo === 'login' ? <>Hola de<br />nuevo.</> : <>Créate<br />una cuenta.</>}
+        </h1>
+        <p className="auth-sub">
+          {modo === 'login' ? 'Entra con tu cuenta ICN.' : 'Gratis. Usa tu mail @alumnos.usm.cl.'}
+        </p>
+
+        <div className="auth-login-tabs">
           <button
             className={modo === 'login' ? 'active' : ''}
-            onClick={() => setModo('login')}
+            onClick={() => { setModo('login'); setError(''); setMensaje('') }}
           >
             Iniciar sesión
           </button>
           <button
-            className={modo === 'registro' ? 'active' : ''}
-            onClick={() => setModo('registro')}
+            className={modo === 'signup' ? 'active' : ''}
+            onClick={() => { setModo('signup'); setError(''); setMensaje('') }}
           >
             Registrarse
           </button>
@@ -61,7 +68,6 @@ export default function Login() {
               required
             />
           </div>
-
           <div className="form-group">
             <label>Contraseña</label>
             <input
@@ -77,10 +83,17 @@ export default function Login() {
           {error && <p className="login-error">{error}</p>}
           {mensaje && <p className="login-success">{mensaje}</p>}
 
-          <button type="submit" className="btn-primary" disabled={cargando}>
-            {cargando ? 'Cargando...' : modo === 'login' ? 'Entrar' : 'Crear cuenta'}
+          <button type="submit" className="auth-submit" disabled={cargando}>
+            {cargando ? 'Cargando...' : modo === 'login' ? 'Entrar →' : 'Crear cuenta →'}
           </button>
         </form>
+      </div>
+
+      <div className="auth-visual">
+        <div className="auth-quote">
+          <p>"Antes llevaba las notas en una <em>hoja rayada</em>. Ahora ya no lloro en diciembre."</p>
+          <cite>— Javi, 4º año ICN</cite>
+        </div>
       </div>
     </div>
   )
