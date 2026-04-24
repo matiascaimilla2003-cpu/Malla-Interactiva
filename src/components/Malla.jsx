@@ -7,9 +7,12 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
   const [ramoSeleccionado, setRamoSeleccionado] = useState(null)
   const [resaltados, setResaltados] = useState(new Set())
 
-  // Un ramo está bloqueado si alguno de sus prereqs no está aprobado
+  // Un ramo está bloqueado si alguno de sus prereqs no está aprobado/convalidado
   function estaBloqueado(ramo) {
-    return ramo.prereqs.some(code => progreso[code] !== 'aprobado')
+    return ramo.prereqs.some(code => {
+      const st = progreso[code]
+      return st !== 'aprobado' && st !== 'convalidado'
+    })
   }
 
   function handleHover(ramo) {
@@ -21,8 +24,8 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
     setResaltados(relacionados)
   }
 
-  // Estadísticas
-  const aprobados = RAMOS.filter(r => progreso[r.code] === 'aprobado')
+  // Estadísticas (aprobado + convalidado cuentan como completados)
+  const aprobados = RAMOS.filter(r => progreso[r.code] === 'aprobado' || progreso[r.code] === 'convalidado')
   const totalCredits = RAMOS.reduce((s, r) => s + r.credits, 0)
   const creditosAprobados = aprobados.reduce((s, r) => s + r.credits, 0)
   const porcentaje = Math.round((creditosAprobados / totalCredits) * 100)
