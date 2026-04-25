@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useProgreso } from './hooks/useProgreso'
 import { usePerfil } from './hooks/usePerfil'
@@ -15,6 +15,12 @@ export default function App() {
   // Unauthenticated navigation: 'landing' | 'auth'
   const [page, setPage] = useState('landing')
   const [authMode, setAuthMode] = useState('login')
+
+  // When the user becomes unauthenticated (sign-out or session expiry),
+  // always return to Landing — not the Login form they may have been on before.
+  useEffect(() => {
+    if (!authLoading && !user) setPage('landing')
+  }, [user, authLoading])
 
   function showAuth(mode) {
     setAuthMode(mode)
