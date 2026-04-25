@@ -963,6 +963,251 @@ html, body, #root {
   background: var(--pill-color); flex-shrink: 0;
 }
 
+/* ===== App layout: sidebar + main ===== */
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.sidebar-logo-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+.sidebar-logo-name em { color: var(--accent); font-style: italic; }
+.sidebar-logo-sub {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-link:hover {
+  background: color-mix(in oklch, var(--accent) 8%, transparent);
+  color: var(--text);
+}
+.sidebar-link.active {
+  background: color-mix(in oklch, var(--accent) 15%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.sidebar-link-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.sidebar-foot {
+  padding: 16px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sidebar-email {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-signout {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+  transition: border-color 0.15s, color 0.15s;
+  text-align: center;
+}
+.sidebar-signout:hover { border-color: var(--grade-err); color: var(--grade-err); }
+
+/* ===== Stat cards ===== */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.stat-card-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-card-value.ok   { color: var(--grade-ok); }
+.stat-card-value.warn { color: var(--grade-warn); }
+.stat-card-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.stat-card-sub   { font-size: 11px; color: var(--muted); }
+.stat-card-bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.stat-card-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* ===== Year groups ===== */
+.year-group { margin-bottom: 36px; }
+.year-group-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.year-group-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.year-group-sems { font-size: 11px; color: var(--muted); }
+.year-sems {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+/* ===== Ramo card grade badge ===== */
+.ramo-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 3px;
+}
+.ramo-grade {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1.5;
+}
+.ramo-grade.ok  {
+  color: var(--grade-ok);
+  background: color-mix(in oklch, var(--grade-ok) 15%, transparent);
+}
+.ramo-grade.err {
+  color: var(--grade-err);
+  background: color-mix(in oklch, var(--grade-err) 15%, transparent);
+}
+
+/* ===== HowTo modal ===== */
+.howto-modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: min(600px, 94vw);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.howto-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+}
+.howto-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.howto-title em { color: var(--accent); font-style: italic; }
+.howto-sub   { font-size: 13px; color: var(--muted); }
+.howto-body  { padding: 4px 28px 20px; }
+.howto-step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.howto-step:last-child { border-bottom: none; }
+.howto-num {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent);
+  opacity: 0.5;
+  flex-shrink: 0;
+  min-width: 28px;
+  padding-top: 1px;
+}
+.howto-step-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.howto-step-body  { font-size: 12px; color: var(--muted); line-height: 1.65; }
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   /* Landing */
@@ -977,16 +1222,22 @@ html, body, #root {
   .auth-visual  { display: none; }
   .auth-panel   { padding: 40px 24px; }
 
-  /* Malla */
-  .malla-container { padding: 12px; }
-  .malla-header    { flex-direction: column; }
-  .malla-stats     { gap: 16px; }
-  .semestre-col    { flex: 0 0 120px; min-width: 120px; }
-  .modal-card      { max-height: 92vh; }
+  /* Sidebar → icon-only strip */
+  .sidebar           { width: 56px; }
+  .sidebar-logo      { padding: 16px; justify-content: center; }
+  .sidebar-logo-text { display: none; }
+  .sidebar-link      { justify-content: center; padding: 10px; }
+  .sidebar-link-label { display: none; }
+  .sidebar-foot      { padding: 10px; align-items: center; }
+  .sidebar-email     { display: none; }
+  .sidebar-signout   { font-size: 10px; padding: 4px 6px; }
 
-  /* Navbar */
-  .btn-nav      { font-size: 11px; padding: 3px 8px; }
-  .navbar-email { display: none; }
+  /* Malla */
+  .malla-container  { padding: 12px; }
+  .stat-cards       { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .stat-card-value  { font-size: 24px; }
+  .semestre-col     { flex: 0 0 120px; min-width: 120px; }
+  .modal-card       { max-height: 92vh; }
 
   /* Calendar */
   .cal-page     { width: 100vw; }

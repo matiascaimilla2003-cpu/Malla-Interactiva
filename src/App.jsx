@@ -10,6 +10,14 @@ import Calendario from './pages/Calendario'
 import ShareModal from './components/ShareModal'
 import GeneratorModal from './components/GeneratorModal'
 
+const NAV_ITEMS = [
+  { id: 'malla',      icon: '▦',  label: 'Mi malla' },
+  { id: 'calendario', icon: '◫',  label: 'Calendario' },
+  { id: 'generador',  icon: '◈',  label: 'Generador' },
+  { id: 'compartir',  icon: '↗',  label: 'Compartir' },
+  { id: 'como',       icon: '?',  label: 'Cómo funciona' },
+]
+
 export default function App() {
   const { user, loading: authLoading, signOut } = useAuth()
   const { progreso, loading: progresoLoading, setEstado, clearEstado } = useProgreso(user?.id)
@@ -20,11 +28,8 @@ export default function App() {
   const [showCalendar, setShowCalendar] = useState(false)
   const [showShare, setShowShare] = useState(false)
   const [showGenerator, setShowGenerator] = useState(false)
+  const [showHowTo, setShowHowTo] = useState(false)
 
-  // If the user signs out or the session expires while inside the app,
-  // user transitions non-null → null. Detect this with a ref so we
-  // reset to 'landing' without accidentally resetting while the user
-  // is already on the login form (where user is also null but prevUser was null too).
   const prevUserRef = useRef(null)
   useEffect(() => {
     if (prevUserRef.current !== null && user === null) {
@@ -38,7 +43,19 @@ export default function App() {
     setPage('auth')
   }
 
-  // ── Loading auth session ──────────────────────────────────────────────────
+  function handleNav(id) {
+    if (id === 'calendario') setShowCalendar(true)
+    else if (id === 'generador') setShowGenerator(true)
+    else if (id === 'compartir') setShowShare(true)
+    else if (id === 'como') setShowHowTo(true)
+  }
+
+  const activeNav = showCalendar ? 'calendario'
+    : showGenerator ? 'generador'
+    : showShare ? 'compartir'
+    : showHowTo ? 'como'
+    : 'malla'
+
   if (authLoading) {
     return (
       <div className="loading-screen">
@@ -48,7 +65,6 @@ export default function App() {
     )
   }
 
-  // ── Unauthenticated flow: Landing → Login ─────────────────────────────────
   if (!user) {
     if (page === 'auth') {
       return <Login defaultMode={authMode} onBack={() => setPage('landing')} />
@@ -56,7 +72,6 @@ export default function App() {
     return <Landing onShowAuth={showAuth} />
   }
 
-  // ── Loading user profile ──────────────────────────────────────────────────
   if (perfilLoading) {
     return (
       <div className="loading-screen">
@@ -66,42 +81,54 @@ export default function App() {
     )
   }
 
-  // ── Onboarding (first time) ───────────────────────────────────────────────
   if (!perfil) {
-    return (
-      <Onboarding
-        user={user}
-        onDone={savePerfil}
-      />
-    )
+    return <Onboarding user={user} onDone={savePerfil} />
   }
 
-  // ── Main app ──────────────────────────────────────────────────────────────
   return (
     <div className="app">
-      <nav className="navbar">
-        <span className="navbar-brand">Malla IC · USM</span>
-        <div className="navbar-right">
-          <button className="btn-nav" onClick={() => setShowCalendar(true)}>📅 Calendario</button>
-          <button className="btn-nav" onClick={() => setShowShare(true)}>🔗 Compartir</button>
-          <button className="btn-nav" onClick={() => setShowGenerator(true)}>✨ Generador</button>
-          <span className="navbar-email">{user.email}</span>
-          <button className="btn-signout" onClick={signOut}>Cerrar sesión</button>
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <div className="brand-mark">M</div>
+          <div className="sidebar-logo-text">
+            <span className="sidebar-logo-name">malla<em>.ic</em></span>
+            <span className="sidebar-logo-sub">Ing. Comercial · USM</span>
+          </div>
         </div>
-      </nav>
 
-      {progresoLoading ? (
-        <div className="loading-screen">
-          <div className="loading-spinner" />
-          <p>Cargando tu progreso...</p>
+        <nav className="sidebar-nav">
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.id}
+              className={`sidebar-link${activeNav === item.id ? ' active' : ''}`}
+              onClick={() => handleNav(item.id)}
+            >
+              <span className="sidebar-link-icon">{item.icon}</span>
+              <span className="sidebar-link-label">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-foot">
+          <span className="sidebar-email">{user.email}</span>
+          <button className="sidebar-signout" onClick={signOut}>Cerrar sesión</button>
         </div>
-      ) : (
-        <Malla
-          progreso={progreso}
-          onSetEstado={setEstado}
-          onClearEstado={clearEstado}
-        />
-      )}
+      </aside>
+
+      <div className="main-content">
+        {progresoLoading ? (
+          <div className="loading-screen">
+            <div className="loading-spinner" />
+            <p>Cargando tu progreso...</p>
+          </div>
+        ) : (
+          <Malla
+            progreso={progreso}
+            onSetEstado={setEstado}
+            onClearEstado={clearEstado}
+          />
+        )}
+      </div>
 
       {showCalendar && (
         <Calendario progreso={progreso} onClose={() => setShowCalendar(false)} />
@@ -112,6 +139,45 @@ export default function App() {
       {showGenerator && (
         <GeneratorModal progreso={progreso} onClose={() => setShowGenerator(false)} />
       )}
+      {showHowTo && (
+        <HowToModal onClose={() => setShowHowTo(false)} />
+      )}
+    </div>
+  )
+}
+
+const HOW_TO_STEPS = [
+  { h: 'Explora tu malla',        p: 'Los ramos vibrantes están disponibles. Los opacos requieren prereqs. Hover para ver relaciones.' },
+  { h: 'Marca el estado',         p: 'Clic en un ramo → elige Cursando, Aprobado, Convalidado, etc. El color de la tarjeta cambia.' },
+  { h: 'Ingresa evaluaciones',    p: 'Agrega certámenes, controles y tareas con su peso %. La nota final se calcula al tipear.' },
+  { h: 'Lee la proyección',       p: 'La barra te dice cuánto necesitas en lo que falta para llegar a 55. En vivo.' },
+  { h: 'Planifica con Generador', p: 'Sugiere los mejores ramos para los próximos semestres según tus prereqs y créditos.' },
+  { h: 'Comparte tu avance',      p: 'Genera un link para que compañeros vean tu malla sin registrarse.' },
+]
+
+function HowToModal({ onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="howto-modal" onClick={e => e.stopPropagation()}>
+        <div className="howto-head">
+          <div>
+            <h2 className="howto-title">Cómo funciona <em>malla.ic</em></h2>
+            <p className="howto-sub">Guía rápida · 6 pasos</p>
+          </div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="howto-body">
+          {HOW_TO_STEPS.map((s, i) => (
+            <div key={i} className="howto-step">
+              <div className="howto-num">{String(i + 1).padStart(2, '0')}</div>
+              <div>
+                <div className="howto-step-title">{s.h}</div>
+                <p className="howto-step-body">{s.p}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
