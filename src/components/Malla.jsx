@@ -16,13 +16,57 @@ function loadGrade(code) {
   } catch { return null }
 }
 
+// Year bands: sem 1-2 → Año 1, sem 3-4 → Año 2, …
 const maxSem = Math.max(...SEMESTRES)
 const YEARS = Array.from({ length: Math.ceil(maxSem / 2) }, (_, i) => ({
   year: i + 1,
   sems: [i * 2 + 1, i * 2 + 2].filter(s => SEMESTRES.includes(s)),
 }))
 
-export default function Malla({ progreso, onSetEstado, onClearEstado }) {
+// ── Inline-editable name field ────────────────────────────────────────────────
+function EditableName({ nombre, onSave }) {
+  const [editing, setEditing]   = useState(false)
+  const [draft,   setDraft]     = useState(nombre ?? '')
+  const [saved,   setSaved]     = useState(false)
+
+  function startEdit() { setDraft(nombre ?? ''); setEditing(true) }
+
+  async function commit() {
+    setEditing(false)
+    const trimmed = draft.trim()
+    if (trimmed === (nombre ?? '')) return
+    await onSave(trimmed)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1500)
+  }
+
+  if (editing) {
+    return (
+      <input
+        className="malla-name-input"
+        value={draft}
+        maxLength={25}
+        onChange={e => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e => e.key === 'Enter' && e.target.blur()}
+        autoFocus
+      />
+    )
+  }
+
+  return (
+    <div className="malla-name" onClick={startEdit} title="Click para editar">
+      {nombre
+        ? <span>{nombre}</span>
+        : <span className="malla-name-placeholder">Tu nombre (click para editar)</span>
+      }
+      <span className="malla-name-icon">{saved ? '✓' : '✎'}</span>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+export default function Malla({ progreso, onSetEstado, onClearEstado, nombre, onSaveNombre, userId }) {
   const [ramoSeleccionado, setRamoSeleccionado] = useState(null)
   const [resaltados, setResaltados] = useState(new Set())
 
@@ -40,7 +84,6 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
     setResaltados(rel)
   }
 
-  // Re-read localStorage grades whenever progreso changes
   const grades = useMemo(() => {
     const g = {}
     RAMOS.forEach(r => {
@@ -50,23 +93,29 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
     return g
   }, [progreso])
 
-  const aprobados = RAMOS.filter(r => progreso[r.code] === 'aprobado' || progreso[r.code] === 'convalidado')
-  const cursando  = RAMOS.filter(r => progreso[r.code] === 'en_curso')
-  const totalRamos    = RAMOS.length
-  const totalCredits  = RAMOS.reduce((s, r) => s + r.credits, 0)
+  const aprobados        = RAMOS.filter(r => progreso[r.code] === 'aprobado' || progreso[r.code] === 'convalidado')
+  const cursando         = RAMOS.filter(r => progreso[r.code] === 'en_curso')
+  const totalRamos       = RAMOS.length
+  const totalCredits     = RAMOS.reduce((s, r) => s + r.credits, 0)
   const creditosAprobados = aprobados.reduce((s, r) => s + r.credits, 0)
-  const porcentajeRamos   = Math.round((aprobados.length / totalRamos) * 100)
-  const porcentajeCr      = Math.round((creditosAprobados / totalCredits) * 100)
+  const porcentajeRamos  = Math.round((aprobados.length / totalRamos) * 100)
+  const porcentajeCr     = Math.round((creditosAprobados / totalCredits) * 100)
 
-  const notasAprobadas = aprobados.map(r => grades[r.code]).filter(g => g != null)
-  const promedioGeneral = notasAprobadas.length
-    ? (notasAprobadas.reduce((a, b) => a + b, 0) / notasAprobadas.length)
+  const notasAprobadas   = aprobados.map(r => grades[r.code]).filter(g => g != null)
+  const promedioGeneral  = notasAprobadas.length
+    ? notasAprobadas.reduce((a, b) => a + b, 0) / notasAprobadas.length
     : null
 
   return (
     <div className="malla-container">
 
-      {/* ── Stat cards ──────────────────────────────────────────────────── */}
+      {/* ── Nombre del estudiante ─────────────────────────────────────────── */}
+      <div className="malla-name-row">
+        <EditableName nombre={nombre} onSave={onSaveNombre} />
+        <span className="malla-name-sub">Ing. Comercial · USM</span>
+      </div>
+
+      {/* ── Stat cards ──────────────────────────────────────────────────────── */}
       <div className="stat-cards">
         <div className="stat-card">
           <div className="stat-card-value">{porcentajeRamos}%</div>
@@ -76,7 +125,6 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
             <div className="stat-card-bar-fill" style={{ width: `${porcentajeRamos}%` }} />
           </div>
         </div>
-
         <div className="stat-card">
           <div className="stat-card-value">{creditosAprobados}</div>
           <div className="stat-card-label">Créditos aprobados</div>
@@ -85,7 +133,6 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
             <div className="stat-card-bar-fill" style={{ width: `${porcentajeCr}%` }} />
           </div>
         </div>
-
         <div className="stat-card">
           <div className={`stat-card-value${promedioGeneral != null ? (promedioGeneral >= 55 ? ' ok' : ' warn') : ''}`}>
             {promedioGeneral != null ? promedioGeneral.toFixed(1) : '—'}
@@ -93,7 +140,6 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
           <div className="stat-card-label">Promedio general</div>
           <div className="stat-card-sub">escala 0 – 100</div>
         </div>
-
         <div className="stat-card">
           <div className="stat-card-value">{cursando.length}</div>
           <div className="stat-card-label">Cursando</div>
@@ -101,7 +147,7 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
         </div>
       </div>
 
-      {/* ── Leyenda de áreas ────────────────────────────────────────────── */}
+      {/* ── Leyenda de áreas ─────────────────────────────────────────────────── */}
       <div className="areas-leyenda">
         {Object.entries(AREAS).map(([key, area]) => (
           <div key={key} className="area-chip" style={{ '--area-color': area.color }}>
@@ -111,39 +157,45 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
         ))}
       </div>
 
-      {/* ── Semestres agrupados por año ──────────────────────────────────── */}
-      {YEARS.map(({ year, sems }) => (
-        <div key={year} className="year-group">
-          <div className="year-group-header">
-            <span className="year-group-label">Año {year}</span>
-            <span className="year-group-sems">
-              {sems.length === 2 ? `Sem. ${sems[0]} y ${sems[1]}` : `Sem. ${sems[0]}`}
-            </span>
-          </div>
-          <div className="year-sems">
-            {sems.map(sem => (
-              <div key={sem} className="semestre-col">
-                <div className="semestre-header">Sem. {sem}</div>
-                <div className="semestre-ramos">
-                  {RAMOS.filter(r => r.sem === sem).map(ramo => (
-                    <RamoCard
-                      key={ramo.code}
-                      ramo={ramo}
-                      estado={progreso[ramo.code] ?? 'pendiente'}
-                      bloqueado={estaBloqueado(ramo)}
-                      resaltado={resaltados.has(ramo.code)}
-                      grade={grades[ramo.code] ?? null}
-                      onClick={setRamoSeleccionado}
-                      onMouseEnter={() => handleHover(ramo)}
-                      onMouseLeave={() => handleHover(null)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* ── Malla horizontal con agrupación por año ───────────────────────── */}
+      <div className="malla-scroll">
+        {/* Year band headers */}
+        <div className="malla-year-bands">
+          {YEARS.map(({ year, sems }) => (
+            <div
+              key={year}
+              className="malla-year-band"
+              style={{ '--span': sems.length }}
+            >
+              <span className="malla-year-label">Año {year}</span>
+            </div>
+          ))}
         </div>
-      ))}
+
+        {/* All semester columns in one horizontal row */}
+        <div className="semestres-grid">
+          {SEMESTRES.map(sem => (
+            <div key={sem} className="semestre-col">
+              <div className="semestre-header">Sem. {sem}</div>
+              <div className="semestre-ramos">
+                {RAMOS.filter(r => r.sem === sem).map(ramo => (
+                  <RamoCard
+                    key={ramo.code}
+                    ramo={ramo}
+                    estado={progreso[ramo.code] ?? 'pendiente'}
+                    bloqueado={estaBloqueado(ramo)}
+                    resaltado={resaltados.has(ramo.code)}
+                    grade={grades[ramo.code] ?? null}
+                    onClick={setRamoSeleccionado}
+                    onMouseEnter={() => handleHover(ramo)}
+                    onMouseLeave={() => handleHover(null)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {ramoSeleccionado && (
         <RamoModal
@@ -153,6 +205,7 @@ export default function Malla({ progreso, onSetEstado, onClearEstado }) {
           onClear={() => onClearEstado(ramoSeleccionado.code)}
           onClose={() => setRamoSeleccionado(null)}
           progreso={progreso}
+          userId={userId}
         />
       )}
     </div>

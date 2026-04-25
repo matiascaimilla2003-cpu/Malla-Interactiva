@@ -61,3 +61,61 @@ create policy "Insertar propio perfil"
 create policy "Actualizar propio perfil"
   on perfil for update
   using (auth.uid() = user_id);
+
+-- Agregar columna nombre si la tabla ya existe:
+alter table perfil add column if not exists nombre text;
+
+-- ─── Tabla de info editable por ramo ─────────────────────────────────────────
+create table if not exists ramo_info (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid references auth.users on delete cascade,
+  ramo_id       text not null,
+  profesor      text,
+  horario_texto text,
+  sala          text,
+  notas_extra   text,
+  updated_at    timestamptz default now(),
+  unique(user_id, ramo_id)
+);
+
+alter table ramo_info enable row level security;
+
+create policy "Ver propia ramo_info"
+  on ramo_info for select
+  using (auth.uid() = user_id);
+
+create policy "Insertar propia ramo_info"
+  on ramo_info for insert
+  with check (auth.uid() = user_id);
+
+create policy "Actualizar propia ramo_info"
+  on ramo_info for update
+  using (auth.uid() = user_id);
+
+create policy "Eliminar propia ramo_info"
+  on ramo_info for delete
+  using (auth.uid() = user_id);
+
+-- ─── Tabla de horario semanal ─────────────────────────────────────────────────
+create table if not exists horario (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid references auth.users on delete cascade,
+  ramo_id       text not null,
+  dia           text not null check (dia in ('Lun','Mar','Mié','Jue','Vie','Sáb')),
+  bloque_inicio int  not null check (bloque_inicio between 1 and 20),
+  bloque_fin    int  not null check (bloque_fin    between 1 and 20)
+);
+
+alter table horario enable row level security;
+
+create policy "Ver propio horario"
+  on horario for select
+  using (auth.uid() = user_id);
+
+create policy "Insertar propio horario"
+  on horario for insert
+  with check (auth.uid() = user_id);
+
+create policy "Eliminar propio horario"
+  on horario for delete
+  using (auth.uid() = user_id);

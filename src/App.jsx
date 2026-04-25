@@ -7,11 +7,13 @@ import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
 import Malla from './components/Malla'
 import Calendario from './pages/Calendario'
+import Horario from './pages/Horario'
 import ShareModal from './components/ShareModal'
 import GeneratorModal from './components/GeneratorModal'
 
 const NAV_ITEMS = [
   { id: 'malla',      icon: '▦',  label: 'Mi malla' },
+  { id: 'horario',    icon: '⊟',  label: 'Horario' },
   { id: 'calendario', icon: '◫',  label: 'Calendario' },
   { id: 'generador',  icon: '◈',  label: 'Generador' },
   { id: 'compartir',  icon: '↗',  label: 'Compartir' },
@@ -21,69 +23,53 @@ const NAV_ITEMS = [
 export default function App() {
   const { user, loading: authLoading, signOut } = useAuth()
   const { progreso, loading: progresoLoading, setEstado, clearEstado } = useProgreso(user?.id)
-  const { perfil, loading: perfilLoading, savePerfil } = usePerfil(user?.id)
+  const { perfil, loading: perfilLoading, savePerfil, saveNombre } = usePerfil(user?.id)
 
-  const [page, setPage] = useState('landing')
-  const [authMode, setAuthMode] = useState('login')
-  const [showCalendar, setShowCalendar] = useState(false)
-  const [showShare, setShowShare] = useState(false)
+  const [page, setPage]             = useState('landing')
+  const [authMode, setAuthMode]     = useState('login')
+  const [showCalendar, setShowCalendar]   = useState(false)
+  const [showHorario, setShowHorario]     = useState(false)
+  const [showShare, setShowShare]         = useState(false)
   const [showGenerator, setShowGenerator] = useState(false)
-  const [showHowTo, setShowHowTo] = useState(false)
+  const [showHowTo, setShowHowTo]         = useState(false)
 
   const prevUserRef = useRef(null)
   useEffect(() => {
-    if (prevUserRef.current !== null && user === null) {
-      setPage('landing')
-    }
+    if (prevUserRef.current !== null && user === null) setPage('landing')
     prevUserRef.current = user ?? null
   }, [user])
 
-  function showAuth(mode) {
-    setAuthMode(mode)
-    setPage('auth')
-  }
+  function showAuth(mode) { setAuthMode(mode); setPage('auth') }
 
   function handleNav(id) {
     if (id === 'calendario') setShowCalendar(true)
-    else if (id === 'generador') setShowGenerator(true)
-    else if (id === 'compartir') setShowShare(true)
-    else if (id === 'como') setShowHowTo(true)
+    else if (id === 'horario')    setShowHorario(true)
+    else if (id === 'generador')  setShowGenerator(true)
+    else if (id === 'compartir')  setShowShare(true)
+    else if (id === 'como')       setShowHowTo(true)
   }
 
   const activeNav = showCalendar ? 'calendario'
-    : showGenerator ? 'generador'
-    : showShare ? 'compartir'
-    : showHowTo ? 'como'
+    : showHorario    ? 'horario'
+    : showGenerator  ? 'generador'
+    : showShare      ? 'compartir'
+    : showHowTo      ? 'como'
     : 'malla'
 
   if (authLoading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-        <p>Cargando...</p>
-      </div>
-    )
+    return <div className="loading-screen"><div className="loading-spinner" /><p>Cargando…</p></div>
   }
 
   if (!user) {
-    if (page === 'auth') {
-      return <Login defaultMode={authMode} onBack={() => setPage('landing')} />
-    }
+    if (page === 'auth') return <Login defaultMode={authMode} onBack={() => setPage('landing')} />
     return <Landing onShowAuth={showAuth} />
   }
 
   if (perfilLoading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-        <p>Cargando tu perfil...</p>
-      </div>
-    )
+    return <div className="loading-screen"><div className="loading-spinner" /><p>Cargando tu perfil…</p></div>
   }
 
-  if (!perfil) {
-    return <Onboarding user={user} onDone={savePerfil} />
-  }
+  if (!perfil) return <Onboarding user={user} onDone={savePerfil} />
 
   return (
     <div className="app">
@@ -117,31 +103,24 @@ export default function App() {
 
       <div className="main-content">
         {progresoLoading ? (
-          <div className="loading-screen">
-            <div className="loading-spinner" />
-            <p>Cargando tu progreso...</p>
-          </div>
+          <div className="loading-screen"><div className="loading-spinner" /><p>Cargando tu progreso…</p></div>
         ) : (
           <Malla
             progreso={progreso}
             onSetEstado={setEstado}
             onClearEstado={clearEstado}
+            nombre={perfil?.nombre ?? ''}
+            onSaveNombre={saveNombre}
+            userId={user.id}
           />
         )}
       </div>
 
-      {showCalendar && (
-        <Calendario progreso={progreso} onClose={() => setShowCalendar(false)} />
-      )}
-      {showShare && (
-        <ShareModal user={user} progreso={progreso} onClose={() => setShowShare(false)} />
-      )}
-      {showGenerator && (
-        <GeneratorModal progreso={progreso} onClose={() => setShowGenerator(false)} />
-      )}
-      {showHowTo && (
-        <HowToModal onClose={() => setShowHowTo(false)} />
-      )}
+      {showCalendar  && <Calendario  progreso={progreso}  onClose={() => setShowCalendar(false)} />}
+      {showHorario   && <Horario     userId={user.id}     onClose={() => setShowHorario(false)} />}
+      {showShare     && <ShareModal  user={user} progreso={progreso} onClose={() => setShowShare(false)} />}
+      {showGenerator && <GeneratorModal progreso={progreso} onClose={() => setShowGenerator(false)} />}
+      {showHowTo     && <HowToModal onClose={() => setShowHowTo(false)} />}
     </div>
   )
 }

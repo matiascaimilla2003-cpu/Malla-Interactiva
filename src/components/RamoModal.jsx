@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import { AREAS, RAMOS, RAMO_META, EVAL_TEMPLATES } from '../data/malla'
+import { AREAS, RAMOS, EVAL_TEMPLATES } from '../data/malla'
+import { useRamoInfo } from '../hooks/useRamoInfo'
+import { useHorario } from '../hooks/useHorario'
 
 const ESTADOS = [
   { value: 'aprobado',    label: 'Aprobado',      icon: '✓' },
@@ -10,36 +12,34 @@ const ESTADOS = [
   { value: 'pendiente',   label: 'Pendiente',      icon: '○' },
 ]
 
+const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
 function computeFinalGrade(evals) {
-  const withWeight = evals.filter(e => +e.weight > 0)
-  if (withWeight.length === 0) return null
-  const allGraded = withWeight.every(e => e.grade !== '' && e.grade != null)
-  if (!allGraded) return null
-  const totalW = withWeight.reduce((s, e) => s + +e.weight, 0)
-  const sum = withWeight.reduce((s, e) => s + +e.grade * +e.weight, 0)
-  return sum / totalW
+  const w = evals.filter(e => +e.weight > 0)
+  if (!w.length) return null
+  if (!w.every(e => e.grade !== '' && e.grade != null)) return null
+  const totalW = w.reduce((s, e) => s + +e.weight, 0)
+  return w.reduce((s, e) => s + +e.grade * +e.weight, 0) / totalW
 }
 
 function computeProjected(evals) {
-  const withWeight = evals.filter(e => +e.weight > 0)
-  if (withWeight.length === 0) return 0
-  const totalW = withWeight.reduce((s, e) => s + +e.weight, 0)
-  const sum = withWeight.reduce((s, e) => {
+  const w = evals.filter(e => +e.weight > 0)
+  if (!w.length) return 0
+  const totalW = w.reduce((s, e) => s + +e.weight, 0)
+  return w.reduce((s, e) => {
     const g = e.grade !== '' && e.grade != null ? +e.grade : 0
     return s + g * +e.weight
-  }, 0)
-  return sum / totalW
+  }, 0) / totalW
 }
 
 function whatINeed(evals, passing = 55) {
-  const withWeight = evals.filter(e => +e.weight > 0)
-  const ungraded = withWeight.filter(e => e.grade === '' || e.grade == null)
-  if (ungraded.length === 0) return null
+  const w = evals.filter(e => +e.weight > 0)
+  const ungraded = w.filter(e => e.grade === '' || e.grade == null)
+  if (!ungraded.length) return null
   const remW = ungraded.reduce((s, e) => s + +e.weight, 0)
-  if (remW === 0) return null
-  const totalW = withWeight.reduce((s, e) => s + +e.weight, 0)
-  const earned = withWeight
-    .filter(e => e.grade !== '' && e.grade != null)
+  if (!remW) return null
+  const totalW = w.reduce((s, e) => s + +e.weight, 0)
+  const earned = w.filter(e => e.grade !== '' && e.grade != null)
     .reduce((s, e) => s + +e.grade * +e.weight, 0)
   return { remW, needed: (passing * totalW - earned) / remW }
 }
@@ -55,48 +55,102 @@ function loadEvals(ramo) {
     : ramo.area === 'ing' ? EVAL_TEMPLATES.ing
     : EVAL_TEMPLATES.default
   return template.map((t, i) => ({
-    id: Date.now() + i,
-    type: t.type,
-    date: '',
-    weight: t.weight,
-    grade: '',
+    id: Date.now() + i, type: t.type, date: '', weight: t.weight, grade: '',
   }))
 }
 
-export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose, progreso }) {
-  const area = AREAS[ramo.area]
-  const meta = RAMO_META[ramo.code]
+// ── Inline field that saves on blur ──────────────────────────────────────────
+function InfoInput({ label, value, placeholder, onSave, textarea = false }) {
+  const [draft, setDraft] = useState(value ?? '')
+  useEffect(() => { setDraft(value ?? '') }, [value])
+
+  function handleBlur() {
+    if (draft !== (value ?? '')) onSave(draft)
+  }
+
+  const props = {
+    className: `info-editable${textarea ? ' info-editable-ta' : ''}`,
+    value: draft,
+    placeholder: placeholder ?? `Agregar ${label.toLowerCase()}…`,
+    onChange: e => setDraft(e.target.value),
+    onBlur: handleBlur,
+  }
+
+  return (
+    <div className="info-item info-item-edit">
+      <span className="info-label">{label}</span>
+      {textarea ? <textarea {...props} rows={2} /> : <input {...props} />}
+    </div>
+  )
+}
+
+// ── Add-bloque form ────────────────────────────────────────────────────────
+function AddBloqueForm({ ramoId, onAdd }) {
+  const [dia,    setDia]    = useState('Lun')
+  const [inicio, setInicio] = useState(1)
+  const [fin,    setFin]    = useState(2)
+  const [saving, setSaving] = useState(false)
+
+  async function handleAdd() {
+    if (+fin < +inicio) return
+    setSaving(true)
+    await onAdd(ramoId, dia, +inicio, +fin)
+    setSaving(false)
+  }
+
+  return (
+    <div className="horario-add-form">
+      <select className="eval-input" value={dia} onChange={e => setDia(e.target.value)}>
+        {DIAS.map(d => <option key={d}>{d}</option>)}
+      </select>
+      <input
+        className="eval-input eval-input-num"
+        type="number" min={1} max={20} value={inicio}
+        onChange={e => setInicio(e.target.value)}
+      />
+      <span className="horario-dash">→</span>
+      <input
+        className="eval-input eval-input-num"
+        type="number" min={1} max={20} value={fin}
+        onChange={e => setFin(e.target.value)}
+      />
+      <button className="eval-add-btn horario-add-btn" onClick={handleAdd} disabled={saving}>
+        {saving ? '…' : '+ Agregar'}
+      </button>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose, progreso, userId }) {
+  const area         = AREAS[ramo.area]
   const prereqsRamos = RAMOS.filter(r => ramo.prereqs.includes(r.code))
   const dependientes = RAMOS.filter(r => r.prereqs.includes(ramo.code))
 
+  // Evaluaciones (localStorage)
   const [evals, setEvals] = useState(() => loadEvals(ramo))
-
   useEffect(() => {
-    try {
-      localStorage.setItem(evalsKey(ramo.code), JSON.stringify(evals))
-    } catch {}
+    try { localStorage.setItem(evalsKey(ramo.code), JSON.stringify(evals)) } catch {}
   }, [evals, ramo.code])
 
-  const addEval = () =>
-    setEvals(prev => [...prev, { id: Date.now(), type: 'Evaluación', date: '', weight: 0, grade: '' }])
+  // Info editable (Supabase)
+  const { info, saveInfo } = useRamoInfo(userId, ramo.code)
 
-  const updateEval = (id, patch) =>
-    setEvals(prev => prev.map(e => e.id === id ? { ...e, ...patch } : e))
+  // Horario semanal (Supabase)
+  const { bloques, addBloque, removeBloque } = useHorario(userId, ramo.code)
 
-  const removeEval = id =>
-    setEvals(prev => prev.filter(e => e.id !== id))
+  const addEval    = () => setEvals(prev => [...prev, { id: Date.now(), type: 'Evaluación', date: '', weight: 0, grade: '' }])
+  const updateEval = (id, patch) => setEvals(prev => prev.map(e => e.id === id ? { ...e, ...patch } : e))
+  const removeEval = id => setEvals(prev => prev.filter(e => e.id !== id))
 
-  const totalWeight = evals.reduce((s, e) => s + (+e.weight || 0), 0)
-  const final = computeFinalGrade(evals)
-  const projected = computeProjected(evals)
-  const need = whatINeed(evals, 55)
-  const displayFinal = final != null ? final : projected
-  const gradeClass = displayFinal >= 55 ? 'grade-ok' : displayFinal >= 40 ? 'grade-warn' : 'grade-err'
+  const totalWeight   = evals.reduce((s, e) => s + (+e.weight || 0), 0)
+  const final         = computeFinalGrade(evals)
+  const projected     = computeProjected(evals)
+  const need          = whatINeed(evals, 55)
+  const displayFinal  = final != null ? final : projected
+  const gradeClass    = displayFinal >= 55 ? 'grade-ok' : displayFinal >= 40 ? 'grade-warn' : 'grade-err'
 
-  const handleEstado = value => {
-    if (value === 'pendiente') onClear()
-    else onSetEstado(value)
-  }
+  const handleEstado = v => v === 'pendiente' ? onClear() : onSetEstado(v)
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -112,7 +166,7 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
-        {/* Info */}
+        {/* Info editable */}
         <div className="modal-info-grid">
           <div className="info-item">
             <span className="info-label">Créditos</span>
@@ -122,20 +176,20 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
             <span className="info-label">Semestre</span>
             <span className="info-valor">{ramo.sem}°</span>
           </div>
-          {meta && <>
-            <div className="info-item">
-              <span className="info-label">Profesor</span>
-              <span className="info-valor">{meta.prof}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Horario</span>
-              <span className="info-valor">{meta.horario}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Sala</span>
-              <span className="info-valor">{meta.sala}</span>
-            </div>
-          </>}
+          <InfoInput label="Profesor" value={info?.profesor} onSave={v => saveInfo({ profesor: v })} />
+          <InfoInput label="Horario"  value={info?.horario_texto} onSave={v => saveInfo({ horario_texto: v })} placeholder="Ej: L-Mi 10:00" />
+          <InfoInput label="Sala"     value={info?.sala}     onSave={v => saveInfo({ sala: v })} />
+        </div>
+
+        {/* Notas extra */}
+        <div className="modal-section">
+          <InfoInput
+            label="Notas del ramo"
+            value={info?.notas_extra}
+            onSave={v => saveInfo({ notas_extra: v })}
+            placeholder="Apuntes, observaciones…"
+            textarea
+          />
         </div>
 
         {/* Estado */}
@@ -154,77 +208,69 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
           </div>
         </div>
 
+        {/* Horario semanal */}
+        <div className="modal-section">
+          <h3>Horario semanal</h3>
+          {bloques.length > 0 && (
+            <div className="horario-bloques-list">
+              {bloques.map(b => (
+                <div key={b.id} className="horario-bloque-row">
+                  <span className="horario-bloque-dia">{b.dia}</span>
+                  <span className="horario-bloque-range">Bloques {b.bloque_inicio} – {b.bloque_fin}</span>
+                  <button className="eval-remove-btn" onClick={() => removeBloque(b.id)}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="horario-add-label">
+            <span>Día</span><span>Inicio</span><span /><span>Fin</span><span />
+          </div>
+          <AddBloqueForm ramoId={ramo.code} onAdd={addBloque} />
+        </div>
+
         {/* Evaluaciones */}
         <div className="modal-section">
           <h3>Evaluaciones</h3>
           <div className="eval-edit-head">
-            <span>Tipo</span>
-            <span>Fecha</span>
-            <span>Peso %</span>
-            <span>Nota</span>
-            <span />
+            <span>Tipo</span><span>Fecha</span><span>Peso %</span><span>Nota</span><span />
           </div>
           {evals.map(ev => (
             <div className="eval-edit-row" key={ev.id}>
-              <input
-                className="eval-input eval-input-type"
-                value={ev.type}
+              <input className="eval-input" value={ev.type}
                 onChange={e => updateEval(ev.id, { type: e.target.value })}
-                placeholder="Ej: Certamen 1"
-              />
-              <input
-                className="eval-input eval-input-date"
-                type="date"
-                value={ev.date || ''}
-                onChange={e => updateEval(ev.id, { date: e.target.value })}
-              />
-              <input
-                className="eval-input eval-input-num"
-                type="number"
-                value={ev.weight}
-                onChange={e => updateEval(ev.id, { weight: e.target.value })}
-                min="0"
-                max="100"
-              />
-              <input
-                className="eval-input eval-input-num"
-                type="number"
-                value={ev.grade}
+                placeholder="Ej: Certamen 1" />
+              <input className="eval-input eval-input-date" type="date" value={ev.date || ''}
+                onChange={e => updateEval(ev.id, { date: e.target.value })} />
+              <input className="eval-input eval-input-num" type="number" value={ev.weight}
+                onChange={e => updateEval(ev.id, { weight: e.target.value })} min="0" max="100" />
+              <input className="eval-input eval-input-num" type="number" value={ev.grade}
                 onChange={e => updateEval(ev.id, { grade: e.target.value })}
-                placeholder="—"
-                min="0"
-                max="100"
-              />
+                placeholder="—" min="0" max="100" />
               <button className="eval-remove-btn" onClick={() => removeEval(ev.id)}>×</button>
             </div>
           ))}
           <button className="eval-add-btn" onClick={addEval}>+ Agregar evaluación</button>
 
           <div className="eval-weight-summary">
-            <span>
-              Total peso:{' '}
+            <span>Total peso:{' '}
               <b style={{ color: totalWeight === 100 ? 'var(--aprobado-color)' : 'var(--grade-warn)' }}>
                 {totalWeight}%
               </b>
             </span>
-            {totalWeight !== 100 && (
-              <span className="eval-weight-warn">⚠ Debería sumar 100%</span>
-            )}
+            {totalWeight !== 100 && <span className="eval-weight-warn">⚠ Debería sumar 100%</span>}
           </div>
 
           {evals.length > 0 && (
             <div className="projection">
               <div className="proj-row">
                 <span className="proj-label">
-                  {final != null ? 'Nota actual (evaluada)' : 'Proyectada (0 en lo pendiente)'}
+                  {final != null ? 'Nota final (evaluada)' : 'Proyectada (0 en lo pendiente)'}
                 </span>
                 <span className={`proj-val ${gradeClass}`}>{displayFinal.toFixed(1)}</span>
               </div>
               <div className="proj-bar">
-                <div
-                  className={`proj-bar-fill ${gradeClass}`}
-                  style={{ width: `${Math.max(0, Math.min(100, displayFinal))}%` }}
-                />
+                <div className={`proj-bar-fill ${gradeClass}`}
+                  style={{ width: `${Math.max(0, Math.min(100, displayFinal))}%` }} />
                 <div className="proj-threshold" />
               </div>
               {need ? (
@@ -252,8 +298,7 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
             <h3>Prerrequisitos</h3>
             <div className="ramo-chips">
               {prereqsRamos.map(r => {
-                const st = progreso[r.code]
-                const done = st === 'aprobado' || st === 'convalidado'
+                const done = progreso[r.code] === 'aprobado' || progreso[r.code] === 'convalidado'
                 return (
                   <span key={r.code} className={`ramo-chip ${done ? 'aprobado' : 'pendiente'}`}>
                     {done ? '✓' : '○'} {r.code} — {r.name}
@@ -270,9 +315,7 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
             <h3>Desbloquea</h3>
             <div className="ramo-chips">
               {dependientes.map(r => (
-                <span key={r.code} className="ramo-chip siguiente">
-                  → {r.code} — {r.name}
-                </span>
+                <span key={r.code} className="ramo-chip siguiente">→ {r.code} — {r.name}</span>
               ))}
             </div>
           </div>
