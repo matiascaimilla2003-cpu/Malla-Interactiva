@@ -15,7 +15,7 @@ export function usePerfil(userId) {
     setLoading(true)
     const { data, error } = await supabase
       .from('perfil')
-      .select('sem_actual, cohorte, es_primero')
+      .select('sem_actual, cohorte, es_primero, nombre')
       .eq('user_id', userId)
       .maybeSingle()
 
@@ -30,9 +30,18 @@ export function usePerfil(userId) {
       .from('perfil')
       .upsert(payload, { onConflict: 'user_id' })
 
-    if (!error) setPerfil({ sem_actual: semActual, cohorte, es_primero: esPrimero })
+    if (!error) setPerfil(prev => ({ ...prev, sem_actual: semActual, cohorte, es_primero: esPrimero }))
     return { error }
   }
 
-  return { perfil, loading, savePerfil }
+  async function saveNombre(nombre) {
+    const { error } = await supabase
+      .from('perfil')
+      .update({ nombre })
+      .eq('user_id', userId)
+    if (!error) setPerfil(prev => ({ ...prev, nombre }))
+    return { error }
+  }
+
+  return { perfil, loading, savePerfil, saveNombre }
 }

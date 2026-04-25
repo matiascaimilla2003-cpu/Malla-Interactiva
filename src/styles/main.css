@@ -1208,6 +1208,211 @@ html, body, #root {
 .howto-step-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
 .howto-step-body  { font-size: 12px; color: var(--muted); line-height: 1.65; }
 
+/* ===== Malla horizontal scroll + year bands ===== */
+.malla-scroll {
+  overflow-x: auto;
+  padding-bottom: 20px;
+}
+.malla-year-bands {
+  display: flex;
+  gap: 12px;
+  min-width: max-content;
+  margin-bottom: 6px;
+}
+.malla-year-band {
+  /* --span: number of semester columns in this year */
+  flex: 0 0 calc(var(--span, 2) * 140px + (var(--span, 2) - 1) * 12px);
+  padding: 6px 8px 5px;
+  border-left: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
+}
+.malla-year-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+/* Override semestres-grid to not scroll independently */
+.malla-scroll .semestres-grid {
+  overflow-x: visible;
+  min-width: max-content;
+}
+
+/* ===== Malla student name field ===== */
+.malla-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.malla-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--border);
+  transition: border-color 0.15s;
+  max-width: 360px;
+}
+.malla-name:hover { border-color: var(--accent); }
+.malla-name-placeholder { color: var(--muted); font-weight: 400; font-size: 16px; }
+.malla-name-icon { font-size: 14px; color: var(--muted); flex-shrink: 0; }
+.malla-name-input {
+  font-size: 22px;
+  font-weight: 800;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--accent);
+  color: var(--text);
+  outline: none;
+  padding: 4px 0;
+  width: 280px;
+  max-width: 360px;
+}
+.malla-name-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ===== Editable info fields in RamoModal ===== */
+.info-item-edit { flex: 0 0 auto; }
+.info-editable {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  width: 150px;
+  transition: border-color 0.15s;
+}
+.info-editable:focus { border-color: var(--accent); }
+.info-editable-ta {
+  width: 100%;
+  resize: vertical;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ===== Horario blocks in RamoModal ===== */
+.horario-bloques-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.horario-bloque-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  padding: 5px 8px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+.horario-bloque-dia   { font-weight: 700; color: var(--accent); min-width: 28px; }
+.horario-bloque-range { flex: 1; color: var(--muted); }
+.horario-add-label {
+  display: grid;
+  grid-template-columns: 80px 52px 16px 52px 1fr;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 2px;
+  margin-bottom: 4px;
+}
+.horario-add-form {
+  display: grid;
+  grid-template-columns: 80px 52px 16px 52px 1fr;
+  gap: 6px;
+  align-items: center;
+}
+.horario-dash   { text-align: center; color: var(--muted); font-size: 11px; }
+.horario-add-btn {
+  margin-top: 0;
+  padding: 5px 10px;
+  font-size: 11px;
+}
+
+/* ===== Horario page ===== */
+.horario-page-body { padding: 24px 28px; flex: 1; overflow-y: auto; }
+.horario-empty {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 2;
+}
+.horario-table-wrap { overflow-x: auto; }
+.horario-table {
+  border-collapse: collapse;
+  min-width: max-content;
+  width: 100%;
+  font-size: 12px;
+}
+.horario-th {
+  padding: 8px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.horario-th-bloque { min-width: 36px; }
+.horario-tr:hover .horario-td { background: color-mix(in oklch, var(--accent) 4%, transparent); }
+.horario-td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: center;
+  min-width: 90px;
+  height: 36px;
+  background: var(--surface);
+  transition: background 0.1s;
+}
+.horario-td-num {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+  min-width: 36px;
+  background: var(--bg2);
+}
+.horario-td-filled {
+  background: color-mix(in oklch, var(--ev-color) 15%, var(--surface));
+}
+.horario-cell-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  background: color-mix(in oklch, var(--ev-color) 25%, transparent);
+  color: color-mix(in oklch, var(--ev-color) 90%, var(--text));
+  border: 1px solid color-mix(in oklch, var(--ev-color) 45%, transparent);
+  white-space: nowrap;
+}
+.horario-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 14px;
+  line-height: 1.6;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   /* Landing */
