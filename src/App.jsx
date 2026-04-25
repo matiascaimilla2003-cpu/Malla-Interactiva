@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useProgreso } from './hooks/useProgreso'
 import { usePerfil } from './hooks/usePerfil'
@@ -12,15 +12,23 @@ export default function App() {
   const { progreso, loading: progresoLoading, setEstado, clearEstado } = useProgreso(user?.id)
   const { perfil, loading: perfilLoading, savePerfil } = usePerfil(user?.id)
 
-  // Unauthenticated navigation: 'landing' | 'auth'
+  // 'landing' | 'auth' — controls which unauthenticated screen to show.
+  // Always starts at 'landing'; only moves to 'auth' when the user
+  // explicitly clicks "Entrar" or "Crear cuenta".
   const [page, setPage] = useState('landing')
   const [authMode, setAuthMode] = useState('login')
 
-  // When the user becomes unauthenticated (sign-out or session expiry),
-  // always return to Landing — not the Login form they may have been on before.
+  // If the user signs out or the session expires while inside the app,
+  // user transitions non-null → null. Detect this with a ref so we
+  // reset to 'landing' without accidentally resetting while the user
+  // is already on the login form (where user is also null but prevUser was null too).
+  const prevUserRef = useRef(null)
   useEffect(() => {
-    if (!authLoading && !user) setPage('landing')
-  }, [user, authLoading])
+    if (prevUserRef.current !== null && user === null) {
+      setPage('landing')
+    }
+    prevUserRef.current = user ?? null
+  }, [user])
 
   function showAuth(mode) {
     setAuthMode(mode)
