@@ -130,6 +130,15 @@
     }
     .btn:active { transform: translateY(0); }
 
+    /* ── Countdown ── */
+    .countdown {
+      margin-top: 18px;
+      font-size: 13px;
+      color: #64748b;
+      animation: fadeInUp 0.55s 0.9s ease both;
+    }
+    .countdown b { color: #22d3ee; }
+
     /* ── Footer ── */
     footer {
       margin-top: 60px;
@@ -187,9 +196,22 @@
       Ir a mi malla →
     </a>
 
+    <p class="countdown">Redirigiendo en <b id="secs">5</b>…</p>
+
   </div>
 
   <footer>Hecho con 💙 por Ingecos</footer>
+
+  <script>
+    const APP = 'https://matiascaimilla2003-cpu.github.io/Malla-Interactiva/'
+    let n = 5
+    const el = document.getElementById('secs')
+    const id = setInterval(() => {
+      n--
+      el.textContent = n
+      if (n <= 0) { clearInterval(id); location.replace(APP) }
+    }, 1000)
+  </script>
 
 </body>
 </html>
