@@ -165,11 +165,13 @@ create policy "Eliminar propio historial"
 -- En Supabase → Authentication → URL Configuration, configura:
 --
 --   Site URL:
---     https://matiascaimilla2003-cpu.github.io/Malla-Interactiva/
+--     https://matiascaimilla2003-cpu.github.io
 --
---   Redirect URLs (agrega esta entrada):
+--   Redirect URLs (agrega ambas entradas):
+--     https://matiascaimilla2003-cpu.github.io/Malla-Interactiva/
 --     https://matiascaimilla2003-cpu.github.io/confirmed.html
 --
--- La página confirmed.html vive en public/confirmed.html y se despliega
--- automáticamente con el sitio en GitHub Pages.
+-- Supabase agrega automáticamente #access_token=...&type=signup al Redirect URL.
+-- El hash es procesado por el SDK de Supabase JS en el cliente (no causa 404).
+-- La app detecta type=signup en el hash y muestra la pantalla de Bienvenida.
 -- ─────────────────────────────────────────────────────────────────────────────

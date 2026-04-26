@@ -1857,3 +1857,83 @@ html, body, #root {
   .cal-aside    { border-top: 1px solid var(--border); padding-top: 20px; }
   .cal-cell     { min-height: 54px; }
 }
+
+/* ===== Bienvenida (post-confirmation) ===== */
+.bienvenida-page {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px 24px;
+  background:
+    radial-gradient(ellipse 65% 50% at 15% 5%,  oklch(50% 0.22 200 / 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 50% at 85% 95%, oklch(55% 0.25 295 / 0.18) 0%, transparent 55%),
+    var(--bg);
+}
+.bienvenida-card {
+  max-width: 460px; width: 100%; text-align: center;
+  animation: fadeInUp 0.65s ease both;
+}
+
+/* Check icon */
+.bv-check-wrap {
+  margin: 0 auto 32px;
+  width: 100px; height: 100px;
+  animation: bvCheckPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+.bv-glow-bg { fill: oklch(78% 0.14 205 / 0.08); }
+.bv-ring {
+  fill: none;
+  stroke: url(#bvGrad);
+  stroke-width: 2.8; stroke-linecap: round;
+  stroke-dasharray: 226; stroke-dashoffset: 226;
+  animation: bvDrawRing 0.65s ease 0.3s forwards;
+}
+.bv-mark {
+  fill: none;
+  stroke: url(#bvGrad);
+  stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 50; stroke-dashoffset: 50;
+  animation: bvDrawMark 0.35s ease 0.8s forwards;
+}
+
+/* Text */
+.bv-title {
+  font-size: clamp(22px, 5vw, 30px); font-weight: 900;
+  letter-spacing: -0.02em; color: var(--text);
+  margin-bottom: 10px;
+  animation: fadeInUp 0.5s 0.45s ease both;
+}
+.bv-subtitle {
+  font-size: clamp(16px, 4vw, 22px); font-weight: 800;
+  letter-spacing: -0.01em; margin-bottom: 20px;
+  background: linear-gradient(90deg, oklch(78% 0.14 205), oklch(65% 0.25 295));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeInUp 0.5s 0.55s ease both;
+}
+.bv-message {
+  font-size: 15px; color: var(--muted); line-height: 1.75;
+  margin-bottom: 36px; max-width: 380px; margin-inline: auto;
+  animation: fadeInUp 0.5s 0.65s ease both;
+}
+
+/* CTA */
+.bv-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 40px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, oklch(78% 0.14 205), oklch(65% 0.25 295));
+  color: oklch(12% 0.03 260);
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 28px oklch(78% 0.14 205 / 0.28);
+  transition: opacity 0.2s, transform 0.2s;
+  animation: fadeInUp 0.5s 0.75s ease both;
+}
+.bv-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+.bv-btn:active { transform: translateY(0); }
+
+@keyframes bvCheckPop {
+  from { opacity: 0; transform: scale(0.3); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes bvDrawRing { to { stroke-dashoffset: 0; } }
+@keyframes bvDrawMark { to { stroke-dashoffset: 0; } }

@@ -5,6 +5,7 @@ import { usePerfil } from './hooks/usePerfil'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
+import Bienvenida from './pages/Bienvenida'
 import Malla from './components/Malla'
 import Calendario from './pages/Calendario'
 import Horario from './pages/Horario'
@@ -22,10 +23,23 @@ const NAV_ITEMS = [
   { id: 'como',       icon: '?',  label: 'Cómo funciona' },
 ]
 
+// Read hash ONCE synchronously before Supabase clears it.
+// type=signup means this is a fresh email confirmation flow.
+function detectSignupHash() {
+  const hash = window.location.hash
+  if (hash.includes('type=signup') || hash.includes('type=email_change')) {
+    sessionStorage.setItem('malla_from_signup', '1')
+  }
+  return sessionStorage.getItem('malla_from_signup') === '1'
+}
+
 export default function App() {
   const { user, loading: authLoading, signOut } = useAuth()
   const { progreso, loading: progresoLoading, setEstado, clearEstado } = useProgreso(user?.id)
   const { perfil, loading: perfilLoading, savePerfil, saveNombre } = usePerfil(user?.id)
+
+  // Stable across re-renders; cleared when user clicks "Empezar →"
+  const [fromSignup, setFromSignup] = useState(detectSignupHash)
 
   const [page, setPage]             = useState('landing')
   const [authMode, setAuthMode]     = useState('login')
@@ -72,6 +86,16 @@ export default function App() {
 
   if (perfilLoading) {
     return <div className="loading-screen"><div className="loading-spinner" /><p>Cargando tu perfil…</p></div>
+  }
+
+  // New user arriving from email confirmation link → show welcome screen once
+  if (!perfil && fromSignup) {
+    return (
+      <Bienvenida onStart={() => {
+        sessionStorage.removeItem('malla_from_signup')
+        setFromSignup(false)
+      }} />
+    )
   }
 
   if (!perfil) return <Onboarding user={user} onDone={savePerfil} />
