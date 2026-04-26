@@ -18,10 +18,10 @@ export function useHorario(userId, ramoId = null) {
     return () => { cancelled = true }
   }, [userId, ramoId])
 
-  async function addBloque(ramo_id, dia, bloque_inicio, bloque_fin) {
+  async function addBloque(ramo_id, dia, bloque_inicio, bloque_fin, sala = '') {
     const { data, error } = await supabase
       .from('horario')
-      .insert({ user_id: userId, ramo_id, dia, bloque_inicio, bloque_fin })
+      .insert({ user_id: userId, ramo_id, dia, bloque_inicio, bloque_fin, sala: sala || null })
       .select()
       .single()
     if (!error && data) setBloques(prev => [...prev, data])

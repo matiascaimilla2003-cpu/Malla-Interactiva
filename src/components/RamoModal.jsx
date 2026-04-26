@@ -84,17 +84,26 @@ function InfoInput({ label, value, placeholder, onSave, textarea = false }) {
   )
 }
 
+// ── Helpers para resumir horario y sala desde bloques ─────────────────────
+function formatHorario(bloques) {
+  return bloques.map(b => `${b.dia} ${b.bloque_inicio}–${b.bloque_fin}`).join(' · ')
+}
+function formatSala(bloques) {
+  return [...new Set(bloques.map(b => b.sala).filter(Boolean))].join(', ')
+}
+
 // ── Add-bloque form ────────────────────────────────────────────────────────
 function AddBloqueForm({ ramoId, onAdd }) {
   const [dia,    setDia]    = useState('Lun')
   const [inicio, setInicio] = useState(1)
   const [fin,    setFin]    = useState(2)
+  const [sala,   setSala]   = useState('')
   const [saving, setSaving] = useState(false)
 
   async function handleAdd() {
     if (+fin < +inicio) return
     setSaving(true)
-    await onAdd(ramoId, dia, +inicio, +fin)
+    await onAdd(ramoId, dia, +inicio, +fin, sala)
     setSaving(false)
   }
 
@@ -113,6 +122,12 @@ function AddBloqueForm({ ramoId, onAdd }) {
         className="eval-input eval-input-num"
         type="number" min={1} max={20} value={fin}
         onChange={e => setFin(e.target.value)}
+      />
+      <input
+        className="eval-input horario-sala-input"
+        value={sala}
+        onChange={e => setSala(e.target.value)}
+        placeholder="Sala (opcional)"
       />
       <button className="eval-add-btn horario-add-btn" onClick={handleAdd} disabled={saving}>
         {saving ? '…' : '+ Agregar'}
@@ -177,8 +192,18 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
             <span className="info-valor">{ramo.sem}°</span>
           </div>
           <InfoInput label="Profesor" value={info?.profesor} onSave={v => saveInfo({ profesor: v })} />
-          <InfoInput label="Horario"  value={info?.horario_texto} onSave={v => saveInfo({ horario_texto: v })} placeholder="Ej: L-Mi 10:00" />
-          <InfoInput label="Sala"     value={info?.sala}     onSave={v => saveInfo({ sala: v })} />
+          {bloques.length > 0 && (
+            <div className="info-item">
+              <span className="info-label">Horario</span>
+              <span className="info-valor">{formatHorario(bloques)}</span>
+            </div>
+          )}
+          {formatSala(bloques) && (
+            <div className="info-item">
+              <span className="info-label">Sala</span>
+              <span className="info-valor">{formatSala(bloques)}</span>
+            </div>
+          )}
         </div>
 
         {/* Notas extra */}
@@ -217,13 +242,14 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
                 <div key={b.id} className="horario-bloque-row">
                   <span className="horario-bloque-dia">{b.dia}</span>
                   <span className="horario-bloque-range">Bloques {b.bloque_inicio} – {b.bloque_fin}</span>
+                  {b.sala && <span className="horario-bloque-sala">{b.sala}</span>}
                   <button className="eval-remove-btn" onClick={() => removeBloque(b.id)}>×</button>
                 </div>
               ))}
             </div>
           )}
           <div className="horario-add-label">
-            <span>Día</span><span>Inicio</span><span /><span>Fin</span><span />
+            <span>Día</span><span>Inicio</span><span /><span>Fin</span><span>Sala</span><span />
           </div>
           <AddBloqueForm ramoId={ramo.code} onAdd={addBloque} />
         </div>

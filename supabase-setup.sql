@@ -103,8 +103,12 @@ create table if not exists horario (
   ramo_id       text not null,
   dia           text not null check (dia in ('Lun','Mar','Mié','Jue','Vie','Sáb')),
   bloque_inicio int  not null check (bloque_inicio between 1 and 20),
-  bloque_fin    int  not null check (bloque_fin    between 1 and 20)
+  bloque_fin    int  not null check (bloque_fin    between 1 and 20),
+  sala          text
 );
+
+-- Si la tabla horario ya existe, agregar la columna sala:
+alter table horario add column if not exists sala text;
 
 alter table horario enable row level security;
 

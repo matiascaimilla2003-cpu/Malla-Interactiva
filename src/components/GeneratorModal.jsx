@@ -55,10 +55,15 @@ export default function GeneratorModal({ onClose, progreso }) {
           <input
             type="range"
             className="gen-slider"
-            min="20" max="60" step="4"
+            min="12" max="50" step="1"
             value={target}
             onChange={e => setTarget(+e.target.value)}
           />
+          {target > 35 && (
+            <p className="gen-overload-warn">
+              ⚠ Los créditos formales por semestre son máximo 35.
+            </p>
+          )}
         </div>
 
         <div className="sem-suggest">
