@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Cuenta confirmada! — malla.ic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+
+      /* Dark base + cyan/violet radial glows */
+      background-color: #0f1117;
+      background-image:
+        radial-gradient(ellipse 65% 50% at 15% 5%,  rgba(34, 211, 238, 0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 65% 50% at 85% 95%, rgba(167, 139, 250, 0.14) 0%, transparent 55%);
+    }
+
+    /* ── Card ── */
+    .card {
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      animation: fadeInUp 0.65s ease both;
+    }
+
+    /* ── Animated check icon ── */
+    .check-wrap {
+      width: 100px; height: 100px;
+      margin: 0 auto 36px;
+      animation: checkPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    }
+    .glow-bg {
+      /* subtle gradient fill behind the ring */
+      fill: rgba(34, 211, 238, 0.07);
+    }
+    .check-ring {
+      fill: none;
+      stroke: url(#grad);
+      stroke-width: 2.8;
+      stroke-linecap: round;
+      /* circumference of r=36 → 2π×36 ≈ 226 */
+      stroke-dasharray: 226;
+      stroke-dashoffset: 226;
+      transform-origin: center;
+      transform: rotate(-90deg);
+      animation: drawRing 0.65s ease 0.3s forwards;
+    }
+    .check-mark {
+      fill: none;
+      stroke: url(#grad);
+      stroke-width: 3.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      /* path length ≈ 46 */
+      stroke-dasharray: 50;
+      stroke-dashoffset: 50;
+      animation: drawMark 0.35s ease 0.8s forwards;
+    }
+
+    /* ── Typography ── */
+    .title {
+      font-size: clamp(22px, 5vw, 30px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #f0f4f8;
+      margin-bottom: 10px;
+      animation: fadeInUp 0.55s 0.4s ease both;
+    }
+    .subtitle {
+      font-size: clamp(16px, 4vw, 22px);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      background: linear-gradient(90deg, #22d3ee, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 28px;
+      animation: fadeInUp 0.55s 0.5s ease both;
+    }
+    .message {
+      font-size: 15px;
+      color: #94a3b8;
+      line-height: 1.78;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.55s 0.6s ease both;
+    }
+    .quote {
+      font-size: 13px;
+      font-style: italic;
+      color: #64748b;
+      margin-bottom: 40px;
+      animation: fadeInUp 0.55s 0.7s ease both;
+    }
+
+    /* ── CTA button ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 15px 40px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #22d3ee, #a78bfa);
+      color: #0d0f14;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 28px rgba(34, 211, 238, 0.28);
+      transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+      animation: fadeInUp 0.55s 0.8s ease both;
+    }
+    .btn:hover {
+      opacity: 0.88;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 36px rgba(34, 211, 238, 0.38);
+    }
+    .btn:active { transform: translateY(0); }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 60px;
+      font-size: 13px;
+      color: #374151;
+      animation: fadeInUp 0.55s 0.95s ease both;
+    }
+
+    /* ── Keyframes ── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes checkPop {
+      from { opacity: 0; transform: scale(0.3); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes drawRing {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes drawMark {
+      to { stroke-dashoffset: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <!-- Animated check icon -->
+    <div class="check-wrap">
+      <svg viewBox="0 0 80 80" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#22d3ee" />
+            <stop offset="100%" stop-color="#a78bfa" />
+          </linearGradient>
+        </defs>
+        <circle class="glow-bg" cx="40" cy="40" r="39" />
+        <circle class="check-ring" cx="40" cy="40" r="36" />
+        <polyline class="check-mark" points="23,41 35,53 57,29" />
+      </svg>
+    </div>
+
+    <h1 class="title">¡Cuenta confirmada! 🎓</h1>
+    <p class="subtitle">Bienvenide a malla.ic</p>
+    <p class="message">
+      Tu carrera en Ingeniería Comercial empieza a organizarse hoy.
+      Registra tus ramos, lleva tus notas y planifica tu semestre —
+      todo en un solo lugar.
+    </p>
+    <p class="quote">"El éxito académico no es suerte, es planificación."</p>
+
+    <a class="btn" href="https://matiascaimilla2003-cpu.github.io/Malla-Interactiva/">
+      Ir a mi malla →
+    </a>
+
+  </div>
+
+  <footer>Hecho con 💙 por Ingecos</footer>
+
+</body>
+</html>
