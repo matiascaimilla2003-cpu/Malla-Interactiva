@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import TestimonialCarousel from '../components/TestimonialCarousel'
 
 const COHORTES = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
 
@@ -107,10 +108,7 @@ export default function Onboarding({ user, onDone }) {
         </button>
       </div>
       <div className="auth-visual">
-        <div className="auth-quote">
-          <p>Casi <em>{pct}%</em> listo.</p>
-          <cite>No nos vamos a demorar, prometido.</cite>
-        </div>
+        <TestimonialCarousel />
       </div>
     </div>
   )
