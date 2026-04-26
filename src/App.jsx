@@ -8,12 +8,14 @@ import Onboarding from './pages/Onboarding'
 import Malla from './components/Malla'
 import Calendario from './pages/Calendario'
 import Horario from './pages/Horario'
+import Historial from './pages/Historial'
 import ShareModal from './components/ShareModal'
 import GeneratorModal from './components/GeneratorModal'
 
 const NAV_ITEMS = [
   { id: 'malla',      icon: '▦',  label: 'Mi malla' },
   { id: 'horario',    icon: '⊟',  label: 'Horario' },
+  { id: 'historial',  icon: '◳',  label: 'Historial' },
   { id: 'calendario', icon: '◫',  label: 'Calendario' },
   { id: 'generador',  icon: '◈',  label: 'Generador' },
   { id: 'compartir',  icon: '↗',  label: 'Compartir' },
@@ -29,6 +31,7 @@ export default function App() {
   const [authMode, setAuthMode]     = useState('login')
   const [showCalendar, setShowCalendar]   = useState(false)
   const [showHorario, setShowHorario]     = useState(false)
+  const [showHistorial, setShowHistorial] = useState(false)
   const [showShare, setShowShare]         = useState(false)
   const [showGenerator, setShowGenerator] = useState(false)
   const [showHowTo, setShowHowTo]         = useState(false)
@@ -42,15 +45,17 @@ export default function App() {
   function showAuth(mode) { setAuthMode(mode); setPage('auth') }
 
   function handleNav(id) {
-    if (id === 'calendario') setShowCalendar(true)
+    if (id === 'calendario')  setShowCalendar(true)
     else if (id === 'horario')    setShowHorario(true)
+    else if (id === 'historial')  setShowHistorial(true)
     else if (id === 'generador')  setShowGenerator(true)
     else if (id === 'compartir')  setShowShare(true)
     else if (id === 'como')       setShowHowTo(true)
   }
 
-  const activeNav = showCalendar ? 'calendario'
+  const activeNav = showCalendar  ? 'calendario'
     : showHorario    ? 'horario'
+    : showHistorial  ? 'historial'
     : showGenerator  ? 'generador'
     : showShare      ? 'compartir'
     : showHowTo      ? 'como'
@@ -118,6 +123,7 @@ export default function App() {
 
       {showCalendar  && <Calendario  progreso={progreso}  onClose={() => setShowCalendar(false)} />}
       {showHorario   && <Horario     userId={user.id}     onClose={() => setShowHorario(false)} />}
+      {showHistorial && <Historial   userId={user.id}     onClose={() => setShowHistorial(false)} />}
       {showShare     && <ShareModal  user={user} progreso={progreso} onClose={() => setShowShare(false)} />}
       {showGenerator && <GeneratorModal progreso={progreso} onClose={() => setShowGenerator(false)} />}
       {showHowTo     && <HowToModal onClose={() => setShowHowTo(false)} />}

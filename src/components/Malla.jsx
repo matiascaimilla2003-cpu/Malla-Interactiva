@@ -1,7 +1,62 @@
 import { useState, useMemo } from 'react'
 import { RAMOS, SEMESTRES, AREAS } from '../data/malla'
+import { supabase } from '../lib/supabase'
 import RamoCard from './RamoCard'
 import RamoModal from './RamoModal'
+
+const PERIODOS_LIST = (() => {
+  const arr = []
+  let year = 2026, sem = 1
+  for (let i = 0; i < 10; i++) {
+    arr.push(`${year}-${sem}`)
+    if (sem === 2) { year++; sem = 1 } else sem++
+  }
+  return arr
+})()
+
+function CerrarSemestreModal({ periodo, onPeriodoChange, cursandoRamos, saving, onConfirm, onCancel }) {
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="cerrar-sem-modal" onClick={e => e.stopPropagation()}>
+        <h3 className="cerrar-sem-title">Cerrar semestre</h3>
+        <div className="cerrar-sem-period-row">
+          <span className="cerrar-sem-period-label">Período:</span>
+          <select
+            className="cerrar-sem-select"
+            value={periodo}
+            onChange={e => onPeriodoChange(e.target.value)}
+          >
+            {PERIODOS_LIST.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <p className="cerrar-sem-body">
+          Los <b>{cursandoRamos.length}</b> ramo{cursandoRamos.length !== 1 ? 's' : ''} en estado{' '}
+          <b>Cursando</b> pasarán al Historial. Podrás registrar sus notas finales después.
+        </p>
+        {cursandoRamos.length > 0 && (
+          <ul className="cerrar-sem-list">
+            {cursandoRamos.map(r => (
+              <li key={r.code}>
+                <span className="cerrar-sem-code">{r.code}</span> {r.name}
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="cerrar-sem-actions">
+          <button className="cerrar-sem-cancel" onClick={onCancel} disabled={saving}>
+            Cancelar
+          </button>
+          <button className="cerrar-sem-confirm" onClick={onConfirm} disabled={saving || cursandoRamos.length === 0}>
+            {saving ? 'Guardando…' : 'Confirmar →'}
+          </button>
+        </div>
+        {cursandoRamos.length === 0 && (
+          <p className="cerrar-sem-warn">No hay ramos en estado Cursando este período.</p>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function loadGrade(code) {
   try {
@@ -69,6 +124,30 @@ function EditableName({ nombre, onSave }) {
 export default function Malla({ progreso, onSetEstado, onClearEstado, nombre, onSaveNombre, userId }) {
   const [ramoSeleccionado, setRamoSeleccionado] = useState(null)
   const [resaltados, setResaltados] = useState(new Set())
+  const [showCerrar, setShowCerrar]     = useState(false)
+  const [closePeriodo, setClosePeriodo] = useState('2026-1')
+  const [savingCerrar, setSavingCerrar] = useState(false)
+
+  const cursandoRamos = useMemo(
+    () => RAMOS.filter(r => progreso[r.code] === 'en_curso'),
+    [progreso]
+  )
+
+  async function handleConfirmCerrar() {
+    setSavingCerrar(true)
+    const rows = cursandoRamos.map(r => ({
+      user_id:      userId,
+      periodo:      closePeriodo,
+      ramo_id:      r.code,
+      estado_final: 'en_curso',
+      nota_final:   loadGrade(r.code),
+    }))
+    const { error } = await supabase
+      .from('historial_semestre')
+      .upsert(rows, { onConflict: 'user_id,periodo,ramo_id' })
+    setSavingCerrar(false)
+    if (!error) setShowCerrar(false)
+  }
 
   function estaBloqueado(ramo) {
     return ramo.prereqs.some(code => {
@@ -113,6 +192,9 @@ export default function Malla({ progreso, onSetEstado, onClearEstado, nombre, on
       <div className="malla-name-row">
         <EditableName nombre={nombre} onSave={onSaveNombre} />
         <span className="malla-name-sub">Ing. Comercial · USM</span>
+        <button className="cerrar-sem-btn" onClick={() => setShowCerrar(true)}>
+          Cerrar semestre →
+        </button>
       </div>
 
       {/* ── Stat cards ──────────────────────────────────────────────────────── */}
@@ -206,6 +288,17 @@ export default function Malla({ progreso, onSetEstado, onClearEstado, nombre, on
           onClose={() => setRamoSeleccionado(null)}
           progreso={progreso}
           userId={userId}
+        />
+      )}
+
+      {showCerrar && (
+        <CerrarSemestreModal
+          periodo={closePeriodo}
+          onPeriodoChange={setClosePeriodo}
+          cursandoRamos={cursandoRamos}
+          saving={savingCerrar}
+          onConfirm={handleConfirmCerrar}
+          onCancel={() => setShowCerrar(false)}
         />
       )}
     </div>

@@ -1472,6 +1472,192 @@ html, body, #root {
   color: var(--muted);
 }
 
+/* ===== Cerrar semestre button ===== */
+.cerrar-sem-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 12px; font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cerrar-sem-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ===== Cerrar semestre modal ===== */
+.cerrar-sem-modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: min(480px, 94vw);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+}
+.cerrar-sem-title {
+  font-size: 16px; font-weight: 700;
+  margin-bottom: 16px; color: var(--text);
+}
+.cerrar-sem-period-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.cerrar-sem-period-label { font-size: 13px; color: var(--muted); }
+.cerrar-sem-select {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+  font-size: 13px; padding: 5px 10px; cursor: pointer;
+}
+.cerrar-sem-body {
+  font-size: 13px; color: var(--muted);
+  line-height: 1.6; margin-bottom: 16px;
+}
+.cerrar-sem-list {
+  list-style: none; margin-bottom: 20px;
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 180px; overflow-y: auto;
+}
+.cerrar-sem-list li {
+  font-size: 12px; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.cerrar-sem-code {
+  font-weight: 700; color: var(--accent);
+  min-width: 60px;
+}
+.cerrar-sem-actions {
+  display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;
+}
+.cerrar-sem-cancel {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--muted);
+  font-size: 13px; padding: 8px 16px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.cerrar-sem-cancel:hover { border-color: var(--text); color: var(--text); }
+.cerrar-sem-confirm {
+  background: var(--accent); border: none;
+  border-radius: var(--radius); color: var(--bg);
+  font-size: 13px; font-weight: 700;
+  padding: 8px 18px; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.cerrar-sem-confirm:hover { opacity: 0.85; }
+.cerrar-sem-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+.cerrar-sem-warn {
+  font-size: 12px; color: var(--grade-warn);
+  margin-top: 10px; text-align: center;
+}
+
+/* ===== Horario period selector ===== */
+.horario-periodo-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.horario-periodo-label {
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  white-space: nowrap; flex-shrink: 0;
+}
+.horario-periodo-tabs {
+  display: flex; gap: 6px; flex-wrap: nowrap;
+}
+.horario-periodo-tab {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 20px; color: var(--muted);
+  font-size: 12px; font-weight: 600;
+  padding: 4px 12px; cursor: pointer; white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.horario-periodo-tab:hover { border-color: var(--accent); color: var(--accent); }
+.horario-periodo-tab.active {
+  background: var(--accent); border-color: var(--accent);
+  color: var(--bg);
+}
+
+/* ===== Historial page ===== */
+.historial-page { max-width: 860px; }
+.historial-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.historial-empty {
+  text-align: center; padding: 48px 24px;
+  color: var(--muted); font-size: 14px; line-height: 1.8;
+}
+.historial-periodo {
+  margin-bottom: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.historial-periodo-head {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.historial-periodo-label {
+  font-size: 14px; font-weight: 700; color: var(--text);
+}
+.historial-periodo-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.historial-stat-badge {
+  font-size: 11px; font-weight: 600;
+  padding: 3px 9px; border-radius: 20px;
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--muted);
+}
+.historial-stat-badge.ok   { color: var(--grade-ok); border-color: var(--grade-ok); }
+.historial-stat-badge.warn { color: var(--grade-warn); border-color: var(--grade-warn); }
+.historial-ramos-list { display: flex; flex-direction: column; }
+.historial-ramo-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.historial-ramo-row:last-child { border-bottom: none; }
+.historial-ramo-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.historial-ramo-code { font-weight: 700; color: var(--accent); min-width: 60px; }
+.historial-ramo-name { flex: 1; color: var(--text); }
+.historial-ramo-cr   { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.historial-ramo-nota { font-weight: 700; min-width: 36px; text-align: right; }
+.historial-ramo-nota.ok  { color: var(--grade-ok); }
+.historial-ramo-nota.err { color: var(--grade-err); }
+.historial-ramo-estado {
+  font-size: 11px; padding: 2px 8px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--muted); white-space: nowrap;
+}
+.historial-ramo-estado.aprobado    { color: var(--aprobado-color);    border-color: var(--aprobado-color); }
+.historial-ramo-estado.reprobado   { color: var(--reprobado-color);   border-color: var(--reprobado-color); }
+.historial-ramo-estado.convalidado { color: var(--convalidado-color); border-color: var(--convalidado-color); }
+.historial-edit-btn {
+  background: transparent; border: none; color: var(--muted);
+  cursor: pointer; font-size: 14px; padding: 2px 6px;
+  border-radius: var(--radius); transition: color 0.15s;
+}
+.historial-edit-btn:hover { color: var(--accent); }
+.historial-nota-input {
+  width: 70px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+  font-size: 12px; padding: 3px 7px;
+}
+.historial-estado-select {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+  font-size: 12px; padding: 3px 7px; cursor: pointer;
+}
+.historial-save-btn {
+  background: var(--accent); border: none;
+  border-radius: var(--radius); color: var(--bg);
+  font-size: 12px; font-weight: 700; padding: 3px 9px; cursor: pointer;
+}
+
 /* ===== Editable info fields in RamoModal ===== */
 .info-item-edit { flex: 0 0 auto; }
 .info-editable {

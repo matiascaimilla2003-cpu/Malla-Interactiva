@@ -6,8 +6,19 @@ import { supabase } from '../lib/supabase'
 const DIAS   = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const BLOCKS = Array.from({ length: 20 }, (_, i) => i + 1)
 
+const PERIODOS = (() => {
+  const arr = []
+  let year = 2026, sem = 1
+  for (let i = 0; i < 10; i++) {
+    arr.push(`${year}-${sem}`)
+    if (sem === 2) { year++; sem = 1 } else sem++
+  }
+  return arr
+})()
+
 export default function Horario({ userId, onClose }) {
   const { bloques, loading } = useHorario(userId)
+  const [periodo, setPeriodo] = useState('2026-1')
 
   // Fetch paralelo from ramo_info for all scheduled ramos
   const [ramoInfos, setRamoInfos] = useState({})
@@ -26,10 +37,16 @@ export default function Horario({ userId, onClose }) {
       })
   }, [userId, bloques])
 
+  // Filter bloques by selected period (default '2026-1' for legacy rows without periodo)
+  const periodoBloques = useMemo(
+    () => bloques.filter(b => (b.periodo ?? '2026-1') === periodo),
+    [bloques, periodo]
+  )
+
   // Build lookup: blockMap[bloque][dia] = { code, name, area, sala, paralelo }
   const blockMap = useMemo(() => {
     const map = {}
-    bloques.forEach(entry => {
+    periodoBloques.forEach(entry => {
       const ramo = RAMOS.find(r => r.code === entry.ramo_id)
       if (!ramo) return
       const area = AREAS[ramo.area]
@@ -46,7 +63,7 @@ export default function Horario({ userId, onClose }) {
       }
     })
     return map
-  }, [bloques, ramoInfos])
+  }, [periodoBloques, ramoInfos])
 
   const hasAny = BLOCKS.some(b => blockMap[b])
 
@@ -59,12 +76,27 @@ export default function Horario({ userId, onClose }) {
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
+        <div className="horario-periodo-bar">
+          <span className="horario-periodo-label">Período</span>
+          <div className="horario-periodo-tabs">
+            {PERIODOS.map(p => (
+              <button
+                key={p}
+                className={`horario-periodo-tab${periodo === p ? ' active' : ''}`}
+                onClick={() => setPeriodo(p)}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="horario-page-body">
           {loading ? (
             <div className="cal-empty-msg" style={{ padding: 32 }}>Cargando…</div>
           ) : !hasAny ? (
             <div className="horario-empty">
-              <p>No hay bloques agendados todavía.</p>
+              <p>No hay bloques agendados para <b>{periodo}</b>.</p>
               <p>Abre un ramo desde la malla y agrega bloques en la sección <b>Horario semanal</b>.</p>
             </div>
           ) : (

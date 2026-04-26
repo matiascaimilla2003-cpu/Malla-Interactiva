@@ -127,6 +127,40 @@ create policy "Eliminar propio horario"
   on horario for delete
   using (auth.uid() = user_id);
 
+-- ─── Períodos académicos ─────────────────────────────────────────────────────
+-- Agregar columna periodo a horario (default '2026-1' para registros existentes):
+alter table horario add column if not exists periodo text default '2026-1';
+
+-- ─── Tabla de historial por semestre ─────────────────────────────────────────
+create table if not exists historial_semestre (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid references auth.users on delete cascade,
+  periodo      text not null,
+  ramo_id      text not null,
+  estado_final text,
+  nota_final   numeric,
+  created_at   timestamptz default now(),
+  unique(user_id, periodo, ramo_id)
+);
+
+alter table historial_semestre enable row level security;
+
+create policy "Ver propio historial"
+  on historial_semestre for select
+  using (auth.uid() = user_id);
+
+create policy "Insertar propio historial"
+  on historial_semestre for insert
+  with check (auth.uid() = user_id);
+
+create policy "Actualizar propio historial"
+  on historial_semestre for update
+  using (auth.uid() = user_id);
+
+create policy "Eliminar propio historial"
+  on historial_semestre for delete
+  using (auth.uid() = user_id);
+
 -- ─── Supabase Auth — URL Configuration ───────────────────────────────────────
 -- En Supabase → Authentication → URL Configuration, configura:
 --
