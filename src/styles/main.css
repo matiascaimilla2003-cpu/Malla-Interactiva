@@ -4,7 +4,7 @@
   --bg2:      oklch(19% 0.03 240);
   --surface:  oklch(23% 0.03 240);
   --border:   oklch(31% 0.03 240);
-  --text:     oklch(96% 0.01 240);
+  --text:     oklch(98% 0.01 240);
   --muted:    oklch(65% 0.02 240);
   --accent:   oklch(78% 0.14 210);
   --accent2:  oklch(75% 0.18 280);
@@ -31,7 +31,7 @@ html, body, #root {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
@@ -235,6 +235,7 @@ html, body, #root {
 .ramo-card:hover:not(.bloqueado) {
   transform: translateY(-2px);
   border-color: var(--area-color);
+  box-shadow: 0 4px 20px color-mix(in oklch, var(--area-color) 25%, transparent);
 }
 .ramo-card.bloqueado {
   opacity: 0.4;
@@ -275,7 +276,7 @@ html, body, #root {
 
 .ramo-code   { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
 .ramo-name   { font-size: 12px; font-weight: 500; line-height: 1.3; margin-bottom: 4px; }
-.ramo-credits { font-size: 10px; color: var(--muted); }
+.ramo-credits { font-size: 12px; font-weight: 600; color: var(--muted); }
 
 /* ===== Modal ===== */
 .modal-overlay {
@@ -1403,18 +1404,33 @@ html, body, #root {
   background: var(--bg2);
 }
 .horario-td-filled {
-  background: color-mix(in oklch, var(--ev-color) 15%, var(--surface));
+  background: color-mix(in oklch, var(--ev-color) 22%, var(--surface));
+  border-left: 3px solid var(--ev-color);
 }
-.horario-cell-chip {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+.horario-td-empty {
+  background: var(--bg);
+}
+.horario-cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+.horario-cell-code {
+  font-size: 12px;
   font-weight: 700;
-  background: color-mix(in oklch, var(--ev-color) 25%, transparent);
   color: color-mix(in oklch, var(--ev-color) 90%, var(--text));
-  border: 1px solid color-mix(in oklch, var(--ev-color) 45%, transparent);
   white-space: nowrap;
+}
+.horario-cell-sala {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.horario-cell-para {
+  font-size: 10px;
+  color: color-mix(in oklch, var(--ev-color) 75%, var(--muted));
+  font-weight: 600;
 }
 .horario-hint {
   font-size: 11px;

@@ -65,6 +65,9 @@ create policy "Actualizar propio perfil"
 -- Agregar columna nombre si la tabla ya existe:
 alter table perfil add column if not exists nombre text;
 
+-- Agregar columna paralelo a ramo_info si la tabla ya existe:
+alter table ramo_info add column if not exists paralelo text;
+
 -- ─── Tabla de info editable por ramo ─────────────────────────────────────────
 create table if not exists ramo_info (
   id            uuid primary key default gen_random_uuid(),

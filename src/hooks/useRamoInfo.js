@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-const EMPTY = { profesor: '', horario_texto: '', sala: '', notas_extra: '' }
+const EMPTY = { profesor: '', paralelo: '', horario_texto: '', sala: '', notas_extra: '' }
 
 export function useRamoInfo(userId, ramoId) {
   const [info, setInfo] = useState(EMPTY)
@@ -13,7 +13,7 @@ export function useRamoInfo(userId, ramoId) {
     setLoading(true)
     supabase
       .from('ramo_info')
-      .select('profesor, horario_texto, sala, notas_extra')
+      .select('profesor, paralelo, horario_texto, sala, notas_extra')
       .eq('user_id', userId)
       .eq('ramo_id', ramoId)
       .maybeSingle()

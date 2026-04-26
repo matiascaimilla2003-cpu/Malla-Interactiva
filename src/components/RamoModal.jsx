@@ -142,6 +142,10 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
   const prereqsRamos = RAMOS.filter(r => ramo.prereqs.includes(r.code))
   const dependientes = RAMOS.filter(r => r.prereqs.includes(ramo.code))
 
+  // Local estado for immediate UI feedback (optimistic)
+  const [localEstado, setLocalEstado] = useState(estado)
+  useEffect(() => { setLocalEstado(estado) }, [estado])
+
   // Evaluaciones (localStorage)
   const [evals, setEvals] = useState(() => loadEvals(ramo))
   useEffect(() => {
@@ -165,7 +169,11 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
   const displayFinal  = final != null ? final : projected
   const gradeClass    = displayFinal >= 55 ? 'grade-ok' : displayFinal >= 40 ? 'grade-warn' : 'grade-err'
 
-  const handleEstado = v => v === 'pendiente' ? onClear() : onSetEstado(v)
+  function handleEstado(v) {
+    setLocalEstado(v)
+    if (v === 'pendiente') onClear()
+    else onSetEstado(v)
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -191,7 +199,8 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
             <span className="info-label">Semestre</span>
             <span className="info-valor">{ramo.sem}°</span>
           </div>
-          <InfoInput label="Profesor" value={info?.profesor} onSave={v => saveInfo({ profesor: v })} />
+          <InfoInput label="Profesor"  value={info?.profesor}  onSave={v => saveInfo({ profesor: v })} />
+          <InfoInput label="Paralelo" value={info?.paralelo}  onSave={v => saveInfo({ paralelo: v })}  placeholder="Ej: 1, 2, 3" />
           {bloques.length > 0 && (
             <div className="info-item">
               <span className="info-label">Horario</span>
@@ -224,7 +233,7 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
             {ESTADOS.map(e => (
               <button
                 key={e.value}
-                className={`estado-btn ${estado === e.value ? 'active' : ''} ${e.value}`}
+                className={`estado-btn ${localEstado === e.value ? 'active' : ''} ${e.value}`}
                 onClick={() => handleEstado(e.value)}
               >
                 <span>{e.icon}</span> {e.label}
