@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import TestimonialCarousel from '../components/TestimonialCarousel'
 
 export default function Login({ defaultMode = 'login', onBack }) {
   const { signIn, signUp } = useAuth()
@@ -90,10 +91,7 @@ export default function Login({ defaultMode = 'login', onBack }) {
       </div>
 
       <div className="auth-visual">
-        <div className="auth-quote">
-          <p>"Antes llevaba las notas en una <em>hoja rayada</em>. Ahora ya no lloro en diciembre."</p>
-          <cite>— Javi, 4º año ICN</cite>
-        </div>
+        <TestimonialCarousel />
       </div>
     </div>
   )
