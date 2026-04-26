@@ -181,13 +181,13 @@ html, body, #root {
 
 /* ===== Leyenda de áreas ===== */
 .areas-leyenda {
-  display: flex; flex-wrap: wrap; gap: 8px;
+  display: flex; flex-wrap: wrap; gap: 10px;
   margin-bottom: 24px;
 }
 .area-chip {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 11px; color: var(--muted);
-  padding: 3px 8px;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; color: var(--muted);
+  padding: 5px 12px;
   border-radius: 20px;
   border: 1px solid color-mix(in oklch, var(--area-color) 30%, transparent);
 }
@@ -931,6 +931,15 @@ html, body, #root {
 .gen-slider {
   width: 100%; accent-color: var(--accent); cursor: pointer;
 }
+.gen-overload-warn {
+  font-size: 12px;
+  color: var(--grade-warn);
+  background: color-mix(in oklch, var(--grade-warn) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--grade-warn) 30%, transparent);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+}
+.horario-sala-input { font-size: 12px; }
 
 /* Semester suggestions */
 .sem-suggest { display: flex; flex-direction: column; gap: 12px; }
@@ -1319,10 +1328,11 @@ html, body, #root {
   border-radius: var(--radius);
 }
 .horario-bloque-dia   { font-weight: 700; color: var(--accent); min-width: 28px; }
-.horario-bloque-range { flex: 1; color: var(--muted); }
+.horario-bloque-range { color: var(--muted); }
+.horario-bloque-sala  { flex: 1; font-size: 11px; color: var(--muted); font-style: italic; }
 .horario-add-label {
   display: grid;
-  grid-template-columns: 80px 52px 16px 52px 1fr;
+  grid-template-columns: 80px 52px 16px 52px 90px auto;
   gap: 6px;
   font-size: 10px;
   color: var(--muted);
@@ -1333,7 +1343,7 @@ html, body, #root {
 }
 .horario-add-form {
   display: grid;
-  grid-template-columns: 80px 52px 16px 52px 1fr;
+  grid-template-columns: 80px 52px 16px 52px 90px auto;
   gap: 6px;
   align-items: center;
 }
