@@ -126,3 +126,16 @@ create policy "Insertar propio horario"
 create policy "Eliminar propio horario"
   on horario for delete
   using (auth.uid() = user_id);
+
+-- ─── Supabase Auth — URL Configuration ───────────────────────────────────────
+-- En Supabase → Authentication → URL Configuration, configura:
+--
+--   Site URL:
+--     https://matiascaimilla2003-cpu.github.io/Malla-Interactiva/
+--
+--   Redirect URLs (agrega esta entrada):
+--     https://matiascaimilla2003-cpu.github.io/confirmed.html
+--
+-- La página confirmed.html vive en public/confirmed.html y se despliega
+-- automáticamente con el sitio en GitHub Pages.
+-- ─────────────────────────────────────────────────────────────────────────────
