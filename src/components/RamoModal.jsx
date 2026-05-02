@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { AREAS, RAMOS, EVAL_TEMPLATES } from '../data/malla'
 import { useRamoInfo } from '../hooks/useRamoInfo'
 import { useHorario } from '../hooks/useHorario'
+import { supabase } from '../lib/supabase'
 
 const ESTADOS = [
   { value: 'aprobado',    label: 'Aprobado',      icon: '✓' },
@@ -59,7 +60,7 @@ function loadEvals(ramo) {
   }))
 }
 
-// ── Inline field that saves on blur ──────────────────────────────────────────
+// ── Inline field that saves on blur ─────────────────────────────────────────────
 function InfoInput({ label, value, placeholder, onSave, textarea = false }) {
   const [draft, setDraft] = useState(value ?? '')
   useEffect(() => { setDraft(value ?? '') }, [value])
@@ -84,7 +85,7 @@ function InfoInput({ label, value, placeholder, onSave, textarea = false }) {
   )
 }
 
-// ── Helpers para resumir horario y sala desde bloques ─────────────────────
+// ── Helpers para resumir horario y sala desde bloques ─────────────────
 function formatHorario(bloques) {
   return bloques.map(b => `${b.dia} ${b.bloque_inicio}–${b.bloque_fin}`).join(' · ')
 }
@@ -92,7 +93,7 @@ function formatSala(bloques) {
   return [...new Set(bloques.map(b => b.sala).filter(Boolean))].join(', ')
 }
 
-// ── Add-bloque form ────────────────────────────────────────────────────────
+// ── Add-bloque form ─────────────────────────────────────────────
 function AddBloqueForm({ ramoId, onAdd }) {
   const [dia,    setDia]    = useState('Lun')
   const [inicio, setInicio] = useState(1)
@@ -136,7 +137,174 @@ function AddBloqueForm({ ramoId, onAdd }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Offensive word filter ────────────────────────────────────────────────────
+const PALABROTAS = ['mierda','puta','puto','huevon','weon','marico','ctm','hdp','culiao',
+  'conchetumare','conchetumadre','weona','huevona','pico','concha']
+function tieneGroserias(text) {
+  const t = text.toLowerCase()
+  return PALABROTAS.some(w => t.includes(w))
+}
+
+// ── Star rating ─────────────────────────────────────────────────────────────────
+function StarRating({ ramoId, profesor, userId }) {
+  const [myStars,   setMyStars]   = useState(0)
+  const [avg,       setAvg]       = useState(null)
+  const [voteCount, setVoteCount] = useState(0)
+  const [hover,     setHover]     = useState(0)
+  const [saving,    setSaving]    = useState(false)
+
+  useEffect(() => {
+    if (!ramoId || !profesor || !userId) return
+    Promise.all([
+      supabase.from('calificaciones_prof').select('estrellas')
+        .eq('ramo_id', ramoId).eq('profesor', profesor),
+      supabase.from('calificaciones_prof').select('estrellas')
+        .eq('ramo_id', ramoId).eq('user_id', userId).maybeSingle(),
+    ]).then(([{ data: all }, { data: own }]) => {
+      if (all?.length) {
+        setVoteCount(all.length)
+        setAvg(all.reduce((s, r) => s + r.estrellas, 0) / all.length)
+      }
+      if (own) setMyStars(own.estrellas)
+    })
+  }, [ramoId, profesor, userId])
+
+  async function handleRate(stars) {
+    if (!userId || saving) return
+    setSaving(true)
+    const prev = myStars
+    setMyStars(stars)
+    const { error } = await supabase.from('calificaciones_prof')
+      .upsert({ user_id: userId, ramo_id: ramoId, profesor, estrellas: stars },
+              { onConflict: 'user_id,ramo_id' })
+    if (error) { setMyStars(prev) } else {
+      const { data } = await supabase.from('calificaciones_prof').select('estrellas')
+        .eq('ramo_id', ramoId).eq('profesor', profesor)
+      if (data?.length) {
+        setVoteCount(data.length)
+        setAvg(data.reduce((s, r) => s + r.estrellas, 0) / data.length)
+      }
+    }
+    setSaving(false)
+  }
+
+  if (!profesor) return null
+  const display = hover || myStars
+
+  return (
+    <div className="star-rating-wrap">
+      <span className="star-label">Calificación del profesor</span>
+      <div className="star-row">
+        {[1,2,3,4,5].map(n => (
+          <button key={n}
+            className={`star-btn${display >= n ? ' lit' : ''}`}
+            onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(0)}
+            onClick={() => handleRate(n)} disabled={saving}
+            aria-label={`${n} estrellas`}
+          >★</button>
+        ))}
+      </div>
+      <span className="star-meta">
+        {avg != null
+          ? `${avg.toFixed(1)} ★ · ${voteCount} voto${voteCount !== 1 ? 's' : ''}`
+          : 'Sin votos aún'}
+        {myStars > 0 && <em className="star-mine"> · Tu voto: {myStars}★</em>}
+      </span>
+    </div>
+  )
+}
+
+// ── Comentarios ───────────────────────────────────────────────────────────────────
+function Comentarios({ ramoId, userId }) {
+  const [lista,      setLista]      = useState([])
+  const [hasPending, setHasPending] = useState(false)
+  const [draft,      setDraft]      = useState('')
+  const [sending,    setSending]    = useState(false)
+  const [sent,       setSent]       = useState(false)
+  const [error,      setError]      = useState('')
+  const [loading,    setLoading]    = useState(true)
+
+  useEffect(() => {
+    supabase.from('comentarios').select('id,texto,created_at')
+      .eq('ramo_id', ramoId).eq('estado', 'aprobado')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { setLista(data ?? []); setLoading(false) })
+
+    if (userId) {
+      supabase.from('comentarios').select('id')
+        .eq('ramo_id', ramoId).eq('user_id', userId).eq('estado', 'pendiente')
+        .maybeSingle()
+        .then(({ data }) => setHasPending(!!data))
+    }
+  }, [ramoId, userId])
+
+  async function handleSend() {
+    const text = draft.trim()
+    if (!text || !userId) return
+    if (text.length > 300) { setError('Máximo 300 caracteres.'); return }
+    if (tieneGroserias(text)) { setError('Por favor evita palabras ofensivas.'); return }
+    if (hasPending) { setError('Ya tienes un comentario pendiente para este ramo.'); return }
+
+    setSending(true); setError('')
+    const { error: err } = await supabase.from('comentarios')
+      .insert({ user_id: userId, ramo_id: ramoId, texto: text })
+    setSending(false)
+    if (err) { setError('Error al enviar. Intenta de nuevo.') }
+    else { setDraft(''); setHasPending(true); setSent(true) }
+  }
+
+  return (
+    <div className="modal-section">
+      <h3>Comentarios del ramo</h3>
+
+      {loading ? (
+        <p className="coment-empty">Cargando…</p>
+      ) : lista.length === 0 ? (
+        <p className="coment-empty">Sin comentarios aprobados todavía. ¡Sé el primero!</p>
+      ) : (
+        <div className="coment-list">
+          {lista.map(c => (
+            <div key={c.id} className="coment-item">
+              <p className="coment-texto">{c.texto}</p>
+              <span className="coment-fecha">
+                {new Date(c.created_at).toLocaleDateString('es-CL')}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {sent ? (
+        <p className="coment-sent">✓ Tu comentario está en revisión. Se publicará cuando sea aprobado.</p>
+      ) : hasPending ? (
+        <p className="coment-pending">Tienes un comentario pendiente de revisión para este ramo.</p>
+      ) : (
+        <div className="coment-form">
+          <textarea
+            className="coment-textarea"
+            value={draft}
+            onChange={e => { setDraft(e.target.value.slice(0, 300)); setError('') }}
+            placeholder="Deja tu comentario anónimo sobre el ramo…"
+            rows={3}
+          />
+          <div className="coment-form-foot">
+            <span className="coment-chars">{draft.length}/300</span>
+            {error && <span className="coment-error">{error}</span>}
+            <button
+              className="coment-send-btn"
+              onClick={handleSend}
+              disabled={!draft.trim() || sending}
+            >
+              {sending ? '…' : 'Enviar'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────
 export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose, progreso, userId }) {
   const area         = AREAS[ramo.area]
   const prereqsRamos = RAMOS.filter(r => ramo.prereqs.includes(r.code))
@@ -355,6 +523,16 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
             </div>
           </div>
         )}
+
+        {/* Calificación del profesor */}
+        {userId && (
+          <div className="modal-section">
+            <StarRating ramoId={ramo.code} profesor={info?.profesor} userId={userId} />
+          </div>
+        )}
+
+        {/* Comentarios */}
+        {userId && <Comentarios ramoId={ramo.code} userId={userId} />}
 
       </div>
     </div>
