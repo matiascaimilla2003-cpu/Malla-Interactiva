@@ -161,6 +161,66 @@ create policy "Eliminar propio historial"
   on historial_semestre for delete
   using (auth.uid() = user_id);
 
+-- ─── Tabla de comentarios de ramos ──────────────────────────────────────────
+create table if not exists comentarios (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users on delete cascade,
+  ramo_id    text not null,
+  texto      text not null,
+  estado     text default 'pendiente' check (estado in ('pendiente','aprobado','rechazado')),
+  created_at timestamptz default now()
+);
+
+alter table comentarios enable row level security;
+
+-- Usuarios normales ven solo aprobados O sus propios pendientes
+create policy "Ver comentarios aprobados"
+  on comentarios for select
+  using (
+    estado = 'aprobado'
+    or auth.uid() = user_id
+  );
+
+create policy "Insertar propio comentario"
+  on comentarios for insert
+  with check (auth.uid() = user_id);
+
+-- Admin puede leer todos (necesario para panel de moderación)
+create policy "Admin ve todos los comentarios"
+  on comentarios for select
+  using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
+
+-- Admin puede cambiar el estado (aprobar/rechazar)
+create policy "Admin modera comentarios"
+  on comentarios for update
+  using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
+
+-- ─── Tabla de calificaciones de profesores ───────────────────────────────────
+create table if not exists calificaciones_prof (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users on delete cascade,
+  ramo_id    text not null,
+  profesor   text not null,
+  estrellas  int check (estrellas between 1 and 5),
+  created_at timestamptz default now(),
+  unique(user_id, ramo_id)
+);
+
+alter table calificaciones_prof enable row level security;
+
+-- Todos los usuarios autenticados pueden ver calificaciones (para calcular promedio)
+create policy "Ver calificaciones"
+  on calificaciones_prof for select
+  using (auth.role() = 'authenticated');
+
+create policy "Insertar propia calificación"
+  on calificaciones_prof for insert
+  with check (auth.uid() = user_id);
+
+create policy "Actualizar propia calificación"
+  on calificaciones_prof for update
+  using (auth.uid() = user_id);
+
 -- ─── Supabase Auth — URL Configuration ───────────────────────────────────────
 -- En Supabase → Authentication → URL Configuration, configura:
 --

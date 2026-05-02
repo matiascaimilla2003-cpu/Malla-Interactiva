@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useProgreso } from './hooks/useProgreso'
 import { usePerfil } from './hooks/usePerfil'
+import { supabase } from './lib/supabase'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
@@ -10,8 +11,11 @@ import Malla from './components/Malla'
 import Calendario from './pages/Calendario'
 import Horario from './pages/Horario'
 import Historial from './pages/Historial'
+import Admin from './pages/Admin'
 import ShareModal from './components/ShareModal'
 import GeneratorModal from './components/GeneratorModal'
+
+const ADMIN_EMAIL = 'matias.caimilla@usm.cl'
 
 const NAV_ITEMS = [
   { id: 'malla',      icon: '▦',  label: 'Mi malla' },
@@ -49,6 +53,17 @@ export default function App() {
   const [showShare, setShowShare]         = useState(false)
   const [showGenerator, setShowGenerator] = useState(false)
   const [showHowTo, setShowHowTo]         = useState(false)
+  const [showAdmin, setShowAdmin]         = useState(false)
+  const [pendingCount, setPendingCount]   = useState(0)
+
+  const isAdmin = user?.email === ADMIN_EMAIL
+
+  useEffect(() => {
+    if (!isAdmin) return
+    supabase.from('comentarios').select('id', { count: 'exact', head: true })
+      .eq('estado', 'pendiente')
+      .then(({ count }) => setPendingCount(count ?? 0))
+  }, [isAdmin, showAdmin])
 
   const prevUserRef = useRef(null)
   useEffect(() => {
@@ -65,6 +80,7 @@ export default function App() {
     else if (id === 'generador')  setShowGenerator(true)
     else if (id === 'compartir')  setShowShare(true)
     else if (id === 'como')       setShowHowTo(true)
+    else if (id === 'admin')      setShowAdmin(true)
   }
 
   const activeNav = showCalendar  ? 'calendario'
@@ -73,6 +89,7 @@ export default function App() {
     : showGenerator  ? 'generador'
     : showShare      ? 'compartir'
     : showHowTo      ? 'como'
+    : showAdmin      ? 'admin'
     : 'malla'
 
   if (authLoading) {
@@ -122,6 +139,20 @@ export default function App() {
               <span className="sidebar-link-label">{item.label}</span>
             </button>
           ))}
+          {isAdmin && (
+            <button
+              className={`sidebar-link${activeNav === 'admin' ? ' active' : ''}`}
+              onClick={() => handleNav('admin')}
+            >
+              <span className="sidebar-link-icon">⚑</span>
+              <span className="sidebar-link-label">
+                Admin
+                {pendingCount > 0 && (
+                  <span className="sidebar-badge">{pendingCount}</span>
+                )}
+              </span>
+            </button>
+          )}
         </nav>
 
         <div className="sidebar-foot">
@@ -151,6 +182,7 @@ export default function App() {
       {showShare     && <ShareModal  user={user} progreso={progreso} onClose={() => setShowShare(false)} />}
       {showGenerator && <GeneratorModal progreso={progreso} onClose={() => setShowGenerator(false)} />}
       {showHowTo     && <HowToModal onClose={() => setShowHowTo(false)} />}
+      {showAdmin     && <Admin onClose={() => setShowAdmin(false)} />}
     </div>
   )
 }
