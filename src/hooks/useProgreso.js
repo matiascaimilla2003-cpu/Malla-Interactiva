@@ -11,6 +11,8 @@ export function useProgreso(userId) {
 
   useEffect(() => {
     if (!userId) { setProgreso({}); setLoading(false); return }
+    setProgreso({})     // evita flash de datos del usuario anterior
+    setLoading(true)
     fetchProgreso()
   }, [userId])
 
