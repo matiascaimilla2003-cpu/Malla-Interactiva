@@ -195,6 +195,11 @@ create policy "Admin modera comentarios"
   on comentarios for update
   using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
 
+-- Admin puede eliminar cualquier comentario
+create policy "Admin elimina comentarios"
+  on comentarios for delete
+  using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
+
 -- ─── Tabla de calificaciones de profesores ───────────────────────────────────
 create table if not exists calificaciones_prof (
   id         uuid primary key default gen_random_uuid(),
