@@ -5,26 +5,35 @@ import { RAMOS } from '../data/malla'
 const RAMO_NAME = Object.fromEntries(RAMOS.map(r => [r.code, r.name]))
 
 export default function Admin({ onClose }) {
+  const [tab,     setTab]     = useState('pendientes')
   const [lista,   setLista]   = useState([])
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(null)
 
-  const fetchPending = useCallback(async () => {
+  const fetchTab = useCallback(async (estado) => {
     setLoading(true)
     const { data } = await supabase
       .from('comentarios')
       .select('id, ramo_id, texto, created_at, estado')
-      .eq('estado', 'pendiente')
+      .eq('estado', estado)
       .order('created_at', { ascending: true })
     setLista(data ?? [])
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchPending() }, [fetchPending])
+  useEffect(() => { fetchTab(tab) }, [fetchTab, tab])
 
   async function setEstado(id, estado) {
     setWorking(id)
     await supabase.from('comentarios').update({ estado }).eq('id', id)
+    setLista(prev => prev.filter(c => c.id !== id))
+    setWorking(null)
+  }
+
+  async function eliminar(id) {
+    if (!window.confirm('¿Eliminar este comentario permanentemente?')) return
+    setWorking(id)
+    await supabase.from('comentarios').delete().eq('id', id)
     setLista(prev => prev.filter(c => c.id !== id))
     setWorking(null)
   }
@@ -36,17 +45,34 @@ export default function Admin({ onClose }) {
           <div>
             <h2 className="cal-title">Moderación de comentarios</h2>
             <p className="cal-sub">
-              {loading ? 'Cargando…' : `${lista.length} pendiente${lista.length !== 1 ? 's' : ''}`}
+              {loading ? 'Cargando…' : `${lista.length} ${tab === 'pendientes' ? 'pendiente' : 'aprobado'}${lista.length !== 1 ? 's' : ''}`}
             </p>
           </div>
           <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="admin-tabs">
+          <button
+            className={`admin-tab${tab === 'pendientes' ? ' active' : ''}`}
+            onClick={() => setTab('pendientes')}
+          >
+            Pendientes
+          </button>
+          <button
+            className={`admin-tab${tab === 'aprobados' ? ' active' : ''}`}
+            onClick={() => setTab('aprobados')}
+          >
+            Aprobados
+          </button>
         </div>
 
         <div className="admin-body">
           {loading ? (
             <p className="admin-empty">Cargando comentarios…</p>
           ) : lista.length === 0 ? (
-            <p className="admin-empty">No hay comentarios pendientes. ✓</p>
+            <p className="admin-empty">
+              {tab === 'pendientes' ? 'No hay comentarios pendientes. ✓' : 'No hay comentarios aprobados.'}
+            </p>
           ) : (
             lista.map(c => (
               <div key={c.id} className="admin-comment-row">
@@ -63,19 +89,31 @@ export default function Admin({ onClose }) {
                 </div>
                 <p className="admin-comment-texto">{c.texto}</p>
                 <div className="admin-comment-actions">
+                  {tab === 'pendientes' && (
+                    <>
+                      <button
+                        className="admin-btn admin-btn-approve"
+                        onClick={() => setEstado(c.id, 'aprobado')}
+                        disabled={working === c.id}
+                      >
+                        ✓ Aprobar
+                      </button>
+                      <button
+                        className="admin-btn admin-btn-reject"
+                        onClick={() => setEstado(c.id, 'rechazado')}
+                        disabled={working === c.id}
+                      >
+                        ✗ Rechazar
+                      </button>
+                    </>
+                  )}
                   <button
-                    className="admin-btn admin-btn-approve"
-                    onClick={() => setEstado(c.id, 'aprobado')}
+                    className="admin-btn admin-btn-delete"
+                    onClick={() => eliminar(c.id)}
                     disabled={working === c.id}
+                    title="Eliminar permanentemente"
                   >
-                    ✓ Aprobar
-                  </button>
-                  <button
-                    className="admin-btn admin-btn-reject"
-                    onClick={() => setEstado(c.id, 'rechazado')}
-                    disabled={working === c.id}
-                  >
-                    ✗ Rechazar
+                    🗑
                   </button>
                 </div>
               </div>
