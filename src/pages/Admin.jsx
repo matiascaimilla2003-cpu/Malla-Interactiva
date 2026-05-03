@@ -2,44 +2,37 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { RAMOS } from '../data/malla'
 
-const RAMO_NAME = Object.fromEntries(RAMOS.map(r => [r.code, r.name]))
-
-// Tab label → valor real en la columna 'estado' de la tabla comentarios
+const ADMIN_EMAIL   = 'matias.caimilla@usm.cl'
+const RAMO_NAME     = Object.fromEntries(RAMOS.map(r => [r.code, r.name]))
 const ESTADO_POR_TAB = { pendientes: 'pendiente', aprobados: 'aprobado' }
 
-export default function Admin({ onClose }) {
+export default function Admin({ userEmail, onClose }) {
   const [tab,     setTab]     = useState('pendientes')
   const [lista,   setLista]   = useState([])
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(null)
 
   const fetchTab = useCallback(async (tabName) => {
+    // Guard React-side: nunca hacer el fetch si no es el admin
+    if (userEmail !== ADMIN_EMAIL) {
+      console.warn('[Admin] fetch bloqueado — email no es admin:', userEmail)
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     const estadoDB = ESTADO_POR_TAB[tabName]
-
-    // Query principal filtrada por estado
     const { data, error } = await supabase
       .from('comentarios')
       .select('id, ramo_id, texto, created_at, estado')
       .eq('estado', estadoDB)
       .order('created_at', { ascending: true })
 
-    // Query de diagnóstico: sin filtro — muestra cuántas filas ve RLS para este usuario
-    const { data: all, error: allErr } = await supabase
-      .from('comentarios')
-      .select('id, estado')
-
-    console.group('[Admin] fetchTab →', tabName)
-    console.log('estadoDB enviado al .eq():', estadoDB)
-    console.log('rows filtradas:', data?.length ?? 0, data)
-    console.log('error filtro:', error)
-    console.log('total visible sin filtro:', all?.length ?? 0, all?.map(r => r.estado))
-    console.log('error sin filtro:', allErr)
-    console.groupEnd()
+    console.log('[Admin] fetchTab', tabName, '| estadoDB:', estadoDB, '| rows:', data?.length ?? 0, '| error:', error?.message ?? null)
 
     setLista(data ?? [])
     setLoading(false)
-  }, [])
+  }, [userEmail])
 
   useEffect(() => { fetchTab(tab) }, [fetchTab, tab])
 
