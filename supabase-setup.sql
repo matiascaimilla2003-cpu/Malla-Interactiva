@@ -186,26 +186,20 @@ create policy "Insertar propio comentario"
   with check (auth.uid() = user_id);
 
 -- Admin puede leer TODOS (pendientes, aprobados, rechazados)
--- Usa una subquery sobre auth.users para evitar depender del JWT claim 'email'
+-- auth.jwt() ->> 'email' es el método oficial de Supabase — no usa subqueries
 create policy "Admin ve todos los comentarios"
   on comentarios for select
-  using (
-    auth.uid() in (select id from auth.users where email = 'matias.caimilla@usm.cl')
-  );
+  using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
 
 -- Admin puede cambiar el estado (aprobar/rechazar)
 create policy "Admin modera comentarios"
   on comentarios for update
-  using (
-    auth.uid() in (select id from auth.users where email = 'matias.caimilla@usm.cl')
-  );
+  using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
 
 -- Admin puede eliminar cualquier comentario
 create policy "Admin elimina comentarios"
   on comentarios for delete
-  using (
-    auth.uid() in (select id from auth.users where email = 'matias.caimilla@usm.cl')
-  );
+  using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
 
 -- ─── Tabla de calificaciones de profesores ───────────────────────────────────
 create table if not exists calificaciones_prof (
@@ -233,31 +227,36 @@ create policy "Actualizar propia calificación"
   on calificaciones_prof for update
   using (auth.uid() = user_id);
 
--- ─── PARCHE: policies admin para comentarios ─────────────────────────────────
--- Ejecuta este bloque en Supabase → SQL Editor si el panel Admin no muestra
--- comentarios pendientes. Borra las policies viejas y las recrea correctamente.
---
+-- ─── PARCHE — ejecutar en Supabase → SQL Editor ──────────────────────────────
+-- Copia y pega este bloque completo si el Admin no ve comentarios pendientes.
+-- Elimina las policies anteriores (incluyendo las rotas con subquery a auth.users)
+-- y las recrea usando auth.jwt() ->> 'email', que es el método oficial de Supabase.
+
 -- drop policy if exists "Ver comentarios aprobados"       on comentarios;
 -- drop policy if exists "Admin ve todos los comentarios"  on comentarios;
 -- drop policy if exists "Admin modera comentarios"        on comentarios;
 -- drop policy if exists "Admin elimina comentarios"       on comentarios;
+-- drop policy if exists "Ver comentarios"                 on comentarios;
 --
--- -- Policy única para SELECT: usuarios ven aprobados+propios, admin ve todo
--- create policy "Ver comentarios"
+-- create policy "Ver comentarios aprobados"
 --   on comentarios for select
---   using (
---     estado = 'aprobado'
---     or auth.uid() = user_id
---     or auth.uid() in (select id from auth.users where email = 'matias.caimilla@usm.cl')
---   );
+--   using (estado = 'aprobado' or auth.uid() = user_id);
+--
+-- create policy "Admin ve todos los comentarios"
+--   on comentarios for select
+--   using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
+--
+-- create policy "Insertar propio comentario"
+--   on comentarios for insert
+--   with check (auth.uid() = user_id);
 --
 -- create policy "Admin modera comentarios"
 --   on comentarios for update
---   using (auth.uid() in (select id from auth.users where email = 'matias.caimilla@usm.cl'));
+--   using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
 --
 -- create policy "Admin elimina comentarios"
 --   on comentarios for delete
---   using (auth.uid() in (select id from auth.users where email = 'matias.caimilla@usm.cl'));
+--   using (auth.jwt() ->> 'email' = 'matias.caimilla@usm.cl');
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- ─── Supabase Auth — URL Configuration ───────────────────────────────────────
