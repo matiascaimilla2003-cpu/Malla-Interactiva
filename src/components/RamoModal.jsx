@@ -45,11 +45,11 @@ function whatINeed(evals, passing = 55) {
   return { remW, needed: (passing * totalW - earned) / remW }
 }
 
-const evalsKey = code => `malla_evals_${code}`
+const evalsKey = (userId, code) => `malla_evals_${userId}_${code}`
 
-function loadEvals(ramo) {
+function loadEvals(userId, ramo) {
   try {
-    const stored = localStorage.getItem(evalsKey(ramo.code))
+    const stored = localStorage.getItem(evalsKey(userId, ramo.code))
     if (stored) return JSON.parse(stored)
   } catch {}
   const template = ramo.area === 'tcs' ? EVAL_TEMPLATES.taller
@@ -315,10 +315,11 @@ export default function RamoModal({ ramo, estado, onSetEstado, onClear, onClose,
   useEffect(() => { setLocalEstado(estado) }, [estado])
 
   // Evaluaciones (localStorage)
-  const [evals, setEvals] = useState(() => loadEvals(ramo))
+  const [evals, setEvals] = useState(() => loadEvals(userId, ramo))
   useEffect(() => {
-    try { localStorage.setItem(evalsKey(ramo.code), JSON.stringify(evals)) } catch {}
-  }, [evals, ramo.code])
+    if (!userId) return
+    try { localStorage.setItem(evalsKey(userId, ramo.code), JSON.stringify(evals)) } catch {}
+  }, [evals, ramo.code, userId])
 
   // Info editable (Supabase)
   const { info, saveInfo } = useRamoInfo(userId, ramo.code)
