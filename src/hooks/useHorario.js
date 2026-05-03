@@ -8,6 +8,7 @@ export function useHorario(userId, ramoId = null) {
   useEffect(() => {
     if (!userId) { setBloques([]); setLoading(false); return }
     let cancelled = false
+    setBloques([])    // evita flash de datos del usuario anterior
     setLoading(true)
     let q = supabase.from('horario').select('*').eq('user_id', userId)
     if (ramoId) q = q.eq('ramo_id', ramoId)
