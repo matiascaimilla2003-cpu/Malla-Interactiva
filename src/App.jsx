@@ -12,6 +12,7 @@ import Calendario from './pages/Calendario'
 import Horario from './pages/Horario'
 import Historial from './pages/Historial'
 import Admin from './pages/Admin'
+import Configuracion from './pages/Configuracion'
 import ShareModal from './components/ShareModal'
 import GeneratorModal from './components/GeneratorModal'
 
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { id: 'generador',  icon: '◈',  label: 'Generador' },
   { id: 'compartir',  icon: '↗',  label: 'Compartir' },
   { id: 'como',       icon: '?',  label: 'Cómo funciona' },
+  { id: 'configuracion', icon: '⚙', label: 'Configuración' },
 ]
 
 // Read hash ONCE synchronously before Supabase clears it.
@@ -53,8 +55,9 @@ export default function App() {
   const [showShare, setShowShare]         = useState(false)
   const [showGenerator, setShowGenerator] = useState(false)
   const [showHowTo, setShowHowTo]         = useState(false)
-  const [showAdmin, setShowAdmin]         = useState(false)
-  const [pendingCount, setPendingCount]   = useState(0)
+  const [showAdmin, setShowAdmin]             = useState(false)
+  const [showConfig, setShowConfig]           = useState(false)
+  const [pendingCount, setPendingCount]       = useState(0)
 
   const isAdmin = user?.email === ADMIN_EMAIL
 
@@ -80,7 +83,8 @@ export default function App() {
     else if (id === 'generador')  setShowGenerator(true)
     else if (id === 'compartir')  setShowShare(true)
     else if (id === 'como')       setShowHowTo(true)
-    else if (id === 'admin')      setShowAdmin(true)
+    else if (id === 'admin')         setShowAdmin(true)
+    else if (id === 'configuracion') setShowConfig(true)
   }
 
   const activeNav = showCalendar  ? 'calendario'
@@ -90,6 +94,7 @@ export default function App() {
     : showShare      ? 'compartir'
     : showHowTo      ? 'como'
     : showAdmin      ? 'admin'
+    : showConfig     ? 'configuracion'
     : 'malla'
 
   if (authLoading) {
@@ -183,6 +188,7 @@ export default function App() {
       {showGenerator && <GeneratorModal progreso={progreso} onClose={() => setShowGenerator(false)} />}
       {showHowTo     && <HowToModal onClose={() => setShowHowTo(false)} />}
       {showAdmin     && <Admin onClose={() => setShowAdmin(false)} />}
+      {showConfig    && <Configuracion userId={user.id} onClose={() => setShowConfig(false)} />}
     </div>
   )
 }
