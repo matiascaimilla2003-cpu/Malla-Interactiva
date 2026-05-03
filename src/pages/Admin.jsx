@@ -4,19 +4,24 @@ import { RAMOS } from '../data/malla'
 
 const RAMO_NAME = Object.fromEntries(RAMOS.map(r => [r.code, r.name]))
 
+// Tab label → valor real en la columna 'estado' de la tabla comentarios
+const ESTADO_POR_TAB = { pendientes: 'pendiente', aprobados: 'aprobado' }
+
 export default function Admin({ onClose }) {
   const [tab,     setTab]     = useState('pendientes')
   const [lista,   setLista]   = useState([])
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(null)
 
-  const fetchTab = useCallback(async (estado) => {
+  const fetchTab = useCallback(async (tabName) => {
     setLoading(true)
-    const { data } = await supabase
+    const estadoDB = ESTADO_POR_TAB[tabName]
+    const { data, error } = await supabase
       .from('comentarios')
       .select('id, ramo_id, texto, created_at, estado')
-      .eq('estado', estado)
+      .eq('estado', estadoDB)
       .order('created_at', { ascending: true })
+    console.log('[Admin] fetchTab', tabName, '→ estado DB:', estadoDB, '| rows:', data?.length ?? 0, '| error:', error?.message ?? null)
     setLista(data ?? [])
     setLoading(false)
   }, [])
