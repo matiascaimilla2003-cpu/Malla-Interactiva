@@ -6,7 +6,6 @@ const ESTADO_ICONS = {
   aprobado:    '✓',
   reprobado:   '✗',
   convalidado: '⇄',
-  inscrito:    '◷',
 }
 
 export default function RamoCard({
