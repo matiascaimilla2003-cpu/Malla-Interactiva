@@ -5,12 +5,11 @@ import { useHorario } from '../hooks/useHorario'
 import { supabase } from '../lib/supabase'
 
 const ESTADOS = [
-  { value: 'aprobado',    label: 'Aprobado',      icon: '✓' },
-  { value: 'en_curso',    label: 'Cursando',       icon: '▶' },
-  { value: 'reprobado',   label: 'Reprobado',      icon: '✗' },
-  { value: 'convalidado', label: 'Convalidado',    icon: '⇄' },
-  { value: 'inscrito',    label: 'Inscrito próx.', icon: '◷' },
-  { value: 'pendiente',   label: 'Pendiente',      icon: '○' },
+  { value: 'aprobado',    label: 'Aprobado',   icon: '✓' },
+  { value: 'en_curso',    label: 'Cursando',    icon: '▶' },
+  { value: 'reprobado',   label: 'Reprobado',   icon: '✗' },
+  { value: 'convalidado', label: 'Convalidado', icon: '⇄' },
+  { value: 'pendiente',   label: 'Pendiente',   icon: '○' },
 ]
 
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
