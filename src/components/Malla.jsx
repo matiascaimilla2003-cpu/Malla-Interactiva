@@ -14,7 +14,8 @@ const PERIODOS_LIST = (() => {
   return arr
 })()
 
-function CerrarSemestreModal({ periodo, onPeriodoChange, cursandoRamos, saving, onConfirm, onCancel }) {
+function CerrarSemestreModal({ periodo, onPeriodoChange, cursandoRamos, reprobadoRamos, saving, onConfirm, onCancel }) {
+  const total = cursandoRamos.length + reprobadoRamos.length
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="cerrar-sem-modal" onClick={e => e.stopPropagation()}>
@@ -30,28 +31,40 @@ function CerrarSemestreModal({ periodo, onPeriodoChange, cursandoRamos, saving, 
           </select>
         </div>
         <p className="cerrar-sem-body">
-          Los <b>{cursandoRamos.length}</b> ramo{cursandoRamos.length !== 1 ? 's' : ''} en estado{' '}
-          <b>Cursando</b> pasarán al Historial. Podrás registrar sus notas finales después.
+          <b>{cursandoRamos.length}</b> ramo{cursandoRamos.length !== 1 ? 's' : ''} cursado{cursandoRamos.length !== 1 ? 's' : ''} y{' '}
+          <b>{reprobadoRamos.length}</b> reprobado{reprobadoRamos.length !== 1 ? 's' : ''} serán archivados.
+          {reprobadoRamos.length > 0 && ' Los reprobados quedarán disponibles para tomarlos nuevamente.'}
         </p>
         {cursandoRamos.length > 0 && (
-          <ul className="cerrar-sem-list">
-            {cursandoRamos.map(r => (
-              <li key={r.code}>
-                <span className="cerrar-sem-code">{r.code}</span> {r.name}
-              </li>
-            ))}
-          </ul>
+          <>
+            <p className="cerrar-sem-section-label">Cursando</p>
+            <ul className="cerrar-sem-list">
+              {cursandoRamos.map(r => (
+                <li key={r.code}><span className="cerrar-sem-code">{r.code}</span> {r.name}</li>
+              ))}
+            </ul>
+          </>
+        )}
+        {reprobadoRamos.length > 0 && (
+          <>
+            <p className="cerrar-sem-section-label cerrar-sem-section-label--reprobado">Reprobados → quedan pendientes</p>
+            <ul className="cerrar-sem-list cerrar-sem-list--reprobado">
+              {reprobadoRamos.map(r => (
+                <li key={r.code}><span className="cerrar-sem-code">{r.code}</span> {r.name}</li>
+              ))}
+            </ul>
+          </>
         )}
         <div className="cerrar-sem-actions">
           <button className="cerrar-sem-cancel" onClick={onCancel} disabled={saving}>
             Cancelar
           </button>
-          <button className="cerrar-sem-confirm" onClick={onConfirm} disabled={saving || cursandoRamos.length === 0}>
+          <button className="cerrar-sem-confirm" onClick={onConfirm} disabled={saving || total === 0}>
             {saving ? 'Guardando…' : 'Confirmar →'}
           </button>
         </div>
-        {cursandoRamos.length === 0 && (
-          <p className="cerrar-sem-warn">No hay ramos en estado Cursando este período.</p>
+        {total === 0 && (
+          <p className="cerrar-sem-warn">No hay ramos en estado Cursando ni Reprobado.</p>
         )}
       </div>
     </div>
@@ -132,21 +145,37 @@ export default function Malla({ progreso, onSetEstado, onClearEstado, nombre, on
     () => RAMOS.filter(r => progreso[r.code] === 'en_curso'),
     [progreso]
   )
+  const reprobadoRamos = useMemo(
+    () => RAMOS.filter(r => progreso[r.code] === 'reprobado'),
+    [progreso]
+  )
 
   async function handleConfirmCerrar() {
     setSavingCerrar(true)
-    const rows = cursandoRamos.map(r => ({
-      user_id:      userId,
-      periodo:      closePeriodo,
-      ramo_id:      r.code,
-      estado_final: 'en_curso',
-      nota_final:   loadGrade(userId, r.code),
-    }))
+    const rows = [
+      ...cursandoRamos.map(r => ({
+        user_id:      userId,
+        periodo:      closePeriodo,
+        ramo_id:      r.code,
+        estado_final: 'en_curso',
+        nota_final:   loadGrade(userId, r.code),
+      })),
+      ...reprobadoRamos.map(r => ({
+        user_id:      userId,
+        periodo:      closePeriodo,
+        ramo_id:      r.code,
+        estado_final: 'reprobado',
+        nota_final:   loadGrade(userId, r.code),
+      })),
+    ]
     const { error } = await supabase
       .from('historial_semestre')
       .upsert(rows, { onConflict: 'user_id,periodo,ramo_id' })
+    if (!error) {
+      await Promise.all(reprobadoRamos.map(r => onClearEstado(r.code)))
+      setShowCerrar(false)
+    }
     setSavingCerrar(false)
-    if (!error) setShowCerrar(false)
   }
 
   function estaBloqueado(ramo) {
@@ -296,6 +325,7 @@ export default function Malla({ progreso, onSetEstado, onClearEstado, nombre, on
           periodo={closePeriodo}
           onPeriodoChange={setClosePeriodo}
           cursandoRamos={cursandoRamos}
+          reprobadoRamos={reprobadoRamos}
           saving={savingCerrar}
           onConfirm={handleConfirmCerrar}
           onCancel={() => setShowCerrar(false)}
