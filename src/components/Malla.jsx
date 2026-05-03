@@ -58,9 +58,9 @@ function CerrarSemestreModal({ periodo, onPeriodoChange, cursandoRamos, saving, 
   )
 }
 
-function loadGrade(code) {
+function loadGrade(userId, code) {
   try {
-    const raw = localStorage.getItem(`malla_evals_${code}`)
+    const raw = localStorage.getItem(`malla_evals_${userId}_${code}`)
     if (!raw) return null
     const evals = JSON.parse(raw)
     const weighted = evals.filter(e => +e.weight > 0)
@@ -140,7 +140,7 @@ export default function Malla({ progreso, onSetEstado, onClearEstado, nombre, on
       periodo:      closePeriodo,
       ramo_id:      r.code,
       estado_final: 'en_curso',
-      nota_final:   loadGrade(r.code),
+      nota_final:   loadGrade(userId, r.code),
     }))
     const { error } = await supabase
       .from('historial_semestre')
@@ -166,11 +166,11 @@ export default function Malla({ progreso, onSetEstado, onClearEstado, nombre, on
   const grades = useMemo(() => {
     const g = {}
     RAMOS.forEach(r => {
-      const grade = loadGrade(r.code)
+      const grade = loadGrade(userId, r.code)
       if (grade != null) g[r.code] = grade
     })
     return g
-  }, [progreso])
+  }, [progreso, userId])
 
   const aprobados        = RAMOS.filter(r => progreso[r.code] === 'aprobado' || progreso[r.code] === 'convalidado')
   const cursando         = RAMOS.filter(r => progreso[r.code] === 'en_curso')
