@@ -2085,6 +2085,37 @@ html, body, #root {
   border: 1px solid oklch(62% 0.20 30 / 0.25);
 }
 .admin-btn-reject:hover:not(:disabled) { background: oklch(62% 0.20 30 / 0.25); }
+.admin-btn-delete {
+  background: oklch(62% 0.20 30 / 0.12);
+  color: var(--reprobado-color);
+  border: 1px solid oklch(62% 0.20 30 / 0.20);
+  margin-left: auto;
+}
+.admin-btn-delete:hover:not(:disabled) { background: oklch(62% 0.20 30 / 0.22); }
+
+/* ===== Admin tabs ===== */
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  flex-shrink: 0;
+}
+.admin-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 18px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.admin-tab:hover { color: var(--text); }
+.admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ===== Sidebar badge ===== */
 .sidebar-badge {
@@ -2097,3 +2128,104 @@ html, body, #root {
   margin-left: 6px; vertical-align: middle;
   line-height: 1;
 }
+
+/* ===== Configuración ===== */
+.config-page { max-width: 480px; }
+.config-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+.config-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 0.2s;
+}
+.config-section--disabled { opacity: 0.45; pointer-events: none; }
+.config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.config-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.config-hint  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* Toggle switch */
+.toggle-wrap   { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; cursor: pointer; }
+.toggle-input  { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: var(--border);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; top: 3px;
+  background: oklch(90% 0.02 240);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle-input:checked + .toggle-slider { background: var(--accent); }
+.toggle-input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+/* Days selector */
+.days-selector { display: flex; gap: 8px; flex-wrap: wrap; }
+.days-btn {
+  padding: 6px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.days-btn:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+.days-btn.active {
+  background: oklch(from var(--accent) l c h / 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.days-btn:disabled { cursor: default; }
+
+/* Footer */
+.config-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+.config-saved {
+  font-size: 13px;
+  color: var(--aprobado-color);
+}
+.config-save-btn {
+  padding: 8px 22px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  border: none;
+  color: oklch(12% 0.03 260);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.config-save-btn:disabled { opacity: 0.45; cursor: default; }
+.config-save-btn:hover:not(:disabled) { opacity: 0.85; }
