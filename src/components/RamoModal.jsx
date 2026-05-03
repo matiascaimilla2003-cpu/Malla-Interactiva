@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { AREAS, RAMOS, EVAL_TEMPLATES } from '../data/malla'
+import { AREAS, RAMOS } from '../data/malla'
 import { useRamoInfo } from '../hooks/useRamoInfo'
 import { useHorario } from '../hooks/useHorario'
 import { supabase } from '../lib/supabase'
@@ -51,12 +51,7 @@ function loadEvals(userId, ramo) {
     const stored = localStorage.getItem(evalsKey(userId, ramo.code))
     if (stored) return JSON.parse(stored)
   } catch {}
-  const template = ramo.area === 'tcs' ? EVAL_TEMPLATES.taller
-    : ramo.area === 'ing' ? EVAL_TEMPLATES.ing
-    : EVAL_TEMPLATES.default
-  return template.map((t, i) => ({
-    id: Date.now() + i, type: t.type, date: '', weight: t.weight, grade: '',
-  }))
+  return []
 }
 
 // ── Inline field that saves on blur ─────────────────────────────────────────────
