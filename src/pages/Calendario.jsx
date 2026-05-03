@@ -6,14 +6,14 @@ const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio',
 const DAY_NAMES   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']
 const MON_SHORT   = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
-function loadEvalsFromStorage(code) {
+function loadEvalsFromStorage(userId, code) {
   try {
-    const raw = localStorage.getItem(`malla_evals_${code}`)
+    const raw = localStorage.getItem(`malla_evals_${userId}_${code}`)
     return raw ? JSON.parse(raw) : []
   } catch { return [] }
 }
 
-export default function Calendario({ progreso, onClose }) {
+export default function Calendario({ progreso, onClose, userId }) {
   const today = new Date()
   const [year, setYear]   = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth()) // 0-indexed
@@ -22,7 +22,7 @@ export default function Calendario({ progreso, onClose }) {
   const allEvents = useMemo(() => {
     const evs = []
     RAMOS.forEach(ramo => {
-      loadEvalsFromStorage(ramo.code).forEach(ev => {
+      loadEvalsFromStorage(userId, ramo.code).forEach(ev => {
         if (!ev.date) return
         evs.push({
           date:     ev.date,   // 'YYYY-MM-DD'
@@ -36,7 +36,7 @@ export default function Calendario({ progreso, onClose }) {
       })
     })
     return evs
-  }, [progreso]) // eslint-disable-line -- re-read storage when progreso changes
+  }, [progreso, userId]) // re-read storage when progreso or user changes
 
   // Calendar geometry
   const firstDay   = new Date(year, month, 1)
