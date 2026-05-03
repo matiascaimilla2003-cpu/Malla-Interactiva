@@ -187,7 +187,7 @@ export default function App() {
       {showShare     && <ShareModal  user={user} progreso={progreso} onClose={() => setShowShare(false)} />}
       {showGenerator && <GeneratorModal progreso={progreso} onClose={() => setShowGenerator(false)} />}
       {showHowTo     && <HowToModal onClose={() => setShowHowTo(false)} />}
-      {showAdmin     && <Admin onClose={() => setShowAdmin(false)} />}
+      {showAdmin     && <Admin userEmail={user.email} onClose={() => setShowAdmin(false)} />}
       {showConfig    && <Configuracion userId={user.id} onClose={() => setShowConfig(false)} />}
     </div>
   )
