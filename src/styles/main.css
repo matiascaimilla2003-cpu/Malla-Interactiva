@@ -251,8 +251,8 @@ html, body, #root {
   border-left-color: var(--en-curso-color);
 }
 .ramo-card.reprobado {
-  background: color-mix(in oklch, var(--reprobado-color) 10%, var(--surface));
-  border-left-color: var(--reprobado-color);
+  background: color-mix(in oklch, var(--reprobado-color) 28%, var(--surface));
+  border-left: 4px solid var(--reprobado-color);
 }
 .ramo-card.convalidado {
   background: color-mix(in oklch, var(--convalidado-color) 10%, var(--surface));
@@ -271,8 +271,9 @@ html, body, #root {
   position: absolute; top: 6px; right: 6px;
   font-size: 10px; color: var(--muted);
 }
-.ramo-card.aprobado .ramo-estado-badge { color: var(--aprobado-color); }
+.ramo-card.aprobado  .ramo-estado-badge { color: var(--aprobado-color); }
 .ramo-card.en_curso  .ramo-estado-badge { color: var(--en-curso-color); }
+.ramo-card.reprobado .ramo-estado-badge { color: var(--reprobado-color); }
 
 .ramo-code   { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
 .ramo-name   { font-size: 12px; font-weight: 500; line-height: 1.3; margin-bottom: 4px; }
@@ -1551,6 +1552,14 @@ html, body, #root {
   font-size: 12px; color: var(--grade-warn);
   margin-top: 10px; text-align: center;
 }
+.cerrar-sem-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted);
+  margin: 10px 0 4px;
+}
+.cerrar-sem-section-label--reprobado { color: var(--reprobado-color); }
+.cerrar-sem-list--reprobado li { opacity: 0.85; }
+.cerrar-sem-list--reprobado .cerrar-sem-code { color: var(--reprobado-color); }
 
 /* ===== Horario period selector ===== */
 .horario-periodo-bar {
