@@ -181,7 +181,7 @@ export default function App() {
         )}
       </div>
 
-      {showCalendar  && <Calendario  progreso={progreso}  onClose={() => setShowCalendar(false)} />}
+      {showCalendar  && <Calendario  progreso={progreso} userId={user.id} onClose={() => setShowCalendar(false)} />}
       {showHorario   && <Horario     userId={user.id}     onClose={() => setShowHorario(false)} />}
       {showHistorial && <Historial   userId={user.id}     onClose={() => setShowHistorial(false)} />}
       {showShare     && <ShareModal  user={user} progreso={progreso} onClose={() => setShowShare(false)} />}
