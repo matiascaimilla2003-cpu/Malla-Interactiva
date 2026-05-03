@@ -8,6 +8,8 @@ export function usePerfil(userId) {
 
   useEffect(() => {
     if (!userId) { setPerfil(null); setLoading(false); return }
+    setPerfil(undefined)  // undefined = cargando; evita mostrar perfil de usuario anterior
+    setLoading(true)
     fetchPerfil()
   }, [userId])
 
